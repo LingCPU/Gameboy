@@ -592,7 +592,7 @@ void CPU::opcode_CB_93(){ // RES 2, E
     opcode_res(2, e);
 }
 
-void CPU::opcode_CB_98(){ // RES 2, H
+void CPU::opcode_CB_94(){ // RES 2, H
     opcode_res(2, h);
 }
 
@@ -848,7 +848,7 @@ void CPU::opcode_CB_D3(){ // SET 2, E
     opcode_set(2, e);
 }
 
-void CPU::opcode_CB_D8(){ // SET 2, H
+void CPU::opcode_CB_D4(){ // SET 2, H
     opcode_set(2, h);
 }
 
