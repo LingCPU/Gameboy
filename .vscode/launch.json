@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug gbemu",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/gbemu",
+      "args": ["${workspaceFolder}/roms/test.gb"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "preLaunchTask": "CMake: build",
+      "windows": {
+        "program": "${workspaceFolder}/build/Debug/gbemu.exe",
+        "MIMode": "gdb"
+      }
+    }
+  ]
+}
