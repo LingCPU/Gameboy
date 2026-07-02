@@ -153,7 +153,7 @@ void CPU::opcode_CB_25(){ // SLA L
 }
 
 void CPU::opcode_CB_26(){ // SLA (HL)
-    opcode_sla((Address(getHL())));
+    opcode_sla(Address(getHL()));
 }
 
 void CPU::opcode_CB_27(){ // SLA A

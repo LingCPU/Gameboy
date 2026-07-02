@@ -47,7 +47,7 @@ void CPU::opcode_daa(){}
 
 // DEC
 void CPU::opcode_dec(){
-
+    decrementSP();
 }
 void CPU::opcode_dec(Register& reg){
     reg.decrement();
@@ -67,7 +67,9 @@ void CPU::opcode_ei(){}
 void CPU::opcode_halt(){};
 
 // INC
-void CPU::opcode_inc(){}
+void CPU::opcode_inc(){
+    incrementSP();
+}
 void CPU::opcode_inc(Register& reg){
     reg.increment();
 }

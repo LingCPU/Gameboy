@@ -802,7 +802,7 @@ void CPU::opcode_C6(){ // ADD A, d8
 }
 
 void CPU::opcode_C7(){ // RST 00H
-    opcode_rst(0);
+    opcode_rst(0x00);
 }
 
 void CPU::opcode_C8(){ // RET Z
@@ -834,7 +834,7 @@ void CPU::opcode_CE(){ // ADC A, d8
 }
 
 void CPU::opcode_CF(){ // RST 08H
-    opcode_rst(8);
+    opcode_rst(0x08);
 }
 
 void CPU::opcode_D0(){ // RET NC
@@ -865,7 +865,7 @@ void CPU::opcode_D6(){ // SUB d8
 }
 
 void CPU::opcode_D7(){ // RST 10H
-    opcode_rst(10);
+    opcode_rst(0x10);
 }
 
 void CPU::opcode_D8(){ // RET C
@@ -925,7 +925,7 @@ void CPU::opcode_E6(){ // AND d8
 }
 
 void CPU::opcode_E7(){ // RST 20H
-    opcode_rst(20);
+    opcode_rst(0x20);
 }
 
 void CPU::opcode_E8(){ // ADD SP, r8
@@ -954,7 +954,7 @@ void CPU::opcode_EE(){ // XOR d8
 }
 
 void CPU::opcode_EF(){ // RST 28H
-    opcode_rst(28);
+    opcode_rst(0x28);
 }
 
 void CPU::opcode_F0(){ // LDH A, (a8)
@@ -985,7 +985,7 @@ void CPU::opcode_F6(){ // OR d8
 }
 
 void CPU::opcode_F7(){ // RST 30H
-    opcode_rst(30);
+    opcode_rst(0x30);
 }
 
 void CPU::opcode_F8(){ // LD HL, SP+r8
@@ -1015,5 +1015,5 @@ void CPU::opcode_FE(){ // CP d8
 }
 
 void CPU::opcode_FF(){ // RST 38H
-    opcode_rst(38);
+    opcode_rst(0x38);
 }
