@@ -14,14 +14,14 @@ CPU::CPU() : pc(0x0000), sp(0xFFFE) { // Initialize PC to 0x0000 and SP to 0xFFF
     l.set(0);
 }
 
-inline uint8_t CPU::getByteFromPC(){
+uint8_t CPU::getByteFromPC(){
     // This will read the byte at the current PC and then increment the PC
     uint8_t byte = mmu.readByte(Address(pc));
     pc++;
     return byte;
 }
 
-inline uint16_t CPU::getWordFromPC(){
+uint16_t CPU::getWordFromPC(){
     uint8_t low = getByteFromPC();
     uint8_t high = getByteFromPC();
     return composeByte(high, low);

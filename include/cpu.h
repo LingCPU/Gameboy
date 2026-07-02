@@ -138,7 +138,7 @@ private:
     void opcode_ld(Register& reg); 
     void opcode_ld(Register& dest, const Register& src); 
     void opcode_ld(Register& reg, const Address& addr);
-    void opcode_ldPair(Register& high, Register& low); 
+    void opcode_ld_pair(Register& high, Register& low); 
     void opcode_ld_sp(const Address& addr); // ld a16 sp
     void opcode_ld_sp(Register& high, Register& low);
     void opcode_ld_sp(); 

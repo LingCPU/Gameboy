@@ -5,7 +5,7 @@ void CPU::opcode_00(){ // NOP
 }
 
 void CPU::opcode_01(){ // LD BC, d16
-    opcode_ldPair(b, c);
+    opcode_ld_pair(b, c);
 }
 
 void CPU::opcode_02(){ // LD (BC), A
@@ -70,7 +70,7 @@ void CPU::opcode_10(){ // STOP 0
 }
 
 void CPU::opcode_11(){ // LD DE, d16
-    opcode_ldPair(d, e);
+    opcode_ld_pair(d, e);
 }
 
 void CPU::opcode_12(){ // LD (DE), A
@@ -134,7 +134,7 @@ void CPU::opcode_20(){ // JR NZ, r8
 }
 
 void CPU::opcode_21(){ // LD HL, d16
-    opcode_ldPair(h, l);
+    opcode_ld_pair(h, l);
 }
 
 void CPU::opcode_22(){ // LD (HL+), A

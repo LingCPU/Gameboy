@@ -46,16 +46,16 @@ void CPU::opcode_cpl(){}
 void CPU::opcode_daa(){}
 
 // DEC
-inline void CPU::opcode_dec(){
+void CPU::opcode_dec(){
 
 }
-inline void CPU::opcode_dec(Register& reg){
+void CPU::opcode_dec(Register& reg){
     reg.decrement();
 }
-inline void CPU::opcode_dec(Register& high, Register& low){
+void CPU::opcode_dec(Register& high, Register& low){
     decrementPair(high, low);
 }
-inline void CPU::opcode_dec(const Address& addr){
+void CPU::opcode_dec(const Address& addr){
 
 }
 
@@ -67,14 +67,14 @@ void CPU::opcode_ei(){}
 void CPU::opcode_halt(){};
 
 // INC
-inline void CPU::opcode_inc(){}
-inline void CPU::opcode_inc(Register& reg){
+void CPU::opcode_inc(){}
+void CPU::opcode_inc(Register& reg){
     reg.increment();
 }
-inline void CPU::opcode_inc(Register& high, Register& low){
+void CPU::opcode_inc(Register& high, Register& low){
     incrementPair(high, low);
 }
-inline void CPU::opcode_inc(const Address& addr){
+void CPU::opcode_inc(const Address& addr){
     
 }
 
@@ -88,24 +88,24 @@ void CPU::opcode_jr(){}
 void CPU::opcode_jr(Condition cond){}
 
 // LD
-inline void CPU::opcode_ld(Register& reg){
+void CPU::opcode_ld(Register& reg){
     uint8_t val = getByteFromPC();
     reg.set(val);
 }
-inline void CPU::opcode_ld(Register& dest, const Register& src){
+void CPU::opcode_ld(Register& dest, const Register& src){
     dest.set(src.value());
 }
-inline void CPU::opcode_ld(Register& reg, const Address& addr){
+void CPU::opcode_ld(Register& reg, const Address& addr){
     reg.set(mmu.readByte(addr));
 }
-inline void CPU::opcode_ldPair(Register& high, Register& low){
+void CPU::opcode_ld_pair(Register& high, Register& low){
     setPair(high, low, getWordFromPC());
 }
-inline void CPU::opcode_ld(const Address& addr){
+void CPU::opcode_ld(const Address& addr){
     uint8_t val = getByteFromPC();
     mmu.writeByte(addr, val);
 }
-inline void CPU::opcode_ld(const Address& addr, const Register& reg){
+void CPU::opcode_ld(const Address& addr, const Register& reg){
     mmu.writeByte(addr, reg.value());
 }
 
