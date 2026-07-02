@@ -27,7 +27,48 @@ uint16_t CPU::getWordFromPC(){
     return composeByte(high, low);
 }
 
+void CPU::setFlags(Flags flags){
+    setFlagZero(flags.zero);
+    setFlagSubtract(flags.subtract);
+    setFlagHalfCarry(flags.halfCarry);
+    setFlagCarry(flags.carry);
+}
 
+bool CPU::flagZero() const {
+    return checkBit(f.value(), 7);
+}
+
+bool CPU::flagSubtract() const {
+    return checkBit(f.value(), 6);
+}
+
+bool CPU::flagHalfCarry() const {
+    return checkBit(f.value(), 5);
+}
+
+bool CPU::flagCarry() const {
+    return checkBit(f.value(), 4);
+}
+
+void CPU::setFlagZero(bool value){
+    if(value) f.set(setBit(f.value(), 7));
+    else f.set(clearBit(f.value(), 7));
+}
+
+void CPU::setFlagSubtract(bool value){
+    if(value) f.set(setBit(f.value(), 6));
+    else f.set(clearBit(f.value(), 6));
+}
+
+void CPU::setFlagHalfCarry(bool value){
+    if(value) f.set(setBit(f.value(), 5));
+    else f.set(clearBit(f.value(), 5));
+}
+
+void CPU::setFlagCarry(bool value){
+    if(value) f.set(setBit(f.value(), 4));
+    else f.set(clearBit(f.value(), 4));
+}
 
 void CPU::executeOpcode(const uint8_t opcode){
     if(opcode != 0xCB) executeRegularOpcode(opcode);

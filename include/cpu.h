@@ -15,6 +15,13 @@ enum class Condition{
     C
 };
 
+struct Flags{
+    const bool zero;
+    const bool subtract;
+    const bool halfCarry;
+    const bool carry;
+};
+
 class CPU{
 public:
     CPU();
@@ -52,6 +59,8 @@ private:
     uint16_t getWordFromPC();
 
     // Flags
+    void setFlags(Flags flags);
+
     bool flagZero() const;
     bool flagSubtract() const;
     bool flagHalfCarry() const;
@@ -61,8 +70,7 @@ private:
     void setFlagSubtract(bool value);
     void setFlagHalfCarry(bool value);
     void setFlagCarry(bool value);
-    
-    
+
     // Opcode helpers:
     // ADC
     void opcode_adc(); // adc only ever loads into register A

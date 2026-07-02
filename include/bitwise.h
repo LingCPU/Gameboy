@@ -12,3 +12,7 @@ inline bool checkBit(const uint8_t byte, const int bit){
 inline uint8_t setBit(const uint8_t byte, const int bit){
     return byte | (1 << bit);
 }
+
+inline uint8_t clearBit(const uint8_t byte, const int bit){
+    return byte & ~(1 << bit);
+}
