@@ -2,10 +2,25 @@
 
 // ADC
 void CPU::opcode_adc(){
+    uint8_t reg = a.value();
+    uint8_t val = getByteFromPC();
+    uint8_t carry = flagCarry() ? 1 : 0;
+    uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(val) + carry;
+    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
 }
 void CPU::opcode_adc(const Register& reg){
+    uint8_t regA = a.value();
+    uint8_t regVal = reg.value();
+    uint8_t carry = flagCarry() ? 1 : 0;
+    uint16_t result = static_cast<uint16_t>(regA) + static_cast<uint16_t>(regVal) + carry;
+    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
 }
 void CPU::opcode_adc(const Address& addr){
+    uint8_t reg = a.value();
+    uint8_t memVal = mmu.readByte(addr);
+    uint8_t carry = flagCarry() ? 1 : 0;
+    uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(memVal) + carry;
+    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
 }
 
 // ADD
