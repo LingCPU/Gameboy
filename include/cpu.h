@@ -73,12 +73,14 @@ private:
 
     // Opcode helpers:
     // ADC
+    uint8_t _opcode_adc(const uint8_t value);
     void opcode_adc(); // adc only ever loads into register A
     void opcode_adc(const Register& reg);
     void opcode_adc(const Address& addr);
-    uint8_t opcode_adc_Helper(const uint8_t value);
 
-    // ADD
+    // ADD 
+    uint8_t _opcode_add(const uint8_t value);
+    uint16_t _opcode_add(const Register& high, const Register& low);
     void opcode_add(); // add A, d8
     void opcode_add(const Register& reg); // add only ever loads into register A from another 8bit register
     void opcode_add(const Address& addr); // adds val from address of HL to A

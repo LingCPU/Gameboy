@@ -1,7 +1,7 @@
 #include "cpu.h"
 
 // ADC
-uint8_t CPU::opcode_adc_Helper(const uint8_t val){
+uint8_t CPU::_opcode_adc(const uint8_t val){
     uint8_t reg = a.value();
     uint8_t carry = flagCarry() ? 1 : 0;
     uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(val) + carry;
@@ -15,32 +15,71 @@ uint8_t CPU::opcode_adc_Helper(const uint8_t val){
 }
 
 void CPU::opcode_adc(){
-    uint8_t result = opcode_adc_Helper(getByteFromPC());
+    uint8_t result = _opcode_adc(getByteFromPC());
     a.set(result); 
 }
 
 void CPU::opcode_adc(const Register& reg){
-    uint8_t result = opcode_adc_Helper(reg.value());
+    uint8_t result = _opcode_adc(reg.value());
     a.set(result);
 }
 
 void CPU::opcode_adc(const Address& addr){
-    uint8_t result = opcode_adc_Helper(mmu.readByte(addr));
+    uint8_t result = _opcode_adc(mmu.readByte(addr));
     a.set(result);
 }
 
 // ADD
-void CPU::opcode_add(){
+uint8_t CPU::_opcode_add(const uint8_t val){
     uint8_t reg = a.value();
-    uint8_t val = getByteFromPC();
     uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(val);
-    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
+    setFlags({
+        .zero = (result & 0xFF) == 0,
+        .subtract = false,
+        .halfCarry = (reg & 0x0F) + (val & 0x0F) > 0x0F,
+        .carry = result > 0xFF
+    });
+    return static_cast<uint8_t>(result & 0xFF);
 }
+
+uint16_t CPU::_opcode_add(const Register& high, const Register& low){
+    uint16_t reg = getHL();
+    uint16_t val = pairVal(high, low);
+    uint16_t result = reg + val;
+    setFlags({
+        .subtract = false,
+        .halfCarry = (reg & 0xFFF) + (val & 0xFFF) > 0xFFF,
+        .carry = result > 0xFFFF
+    });
+    return result;
+}
+
+void CPU::opcode_add(){
+    uint8_t result = _opcode_add(getByteFromPC());
+    a.set(result);
+}
+
 void CPU::opcode_add(const Register& reg){
+    uint8_t result = _opcode_add(reg.value());
+    a.set(result);
 }
+
 void CPU::opcode_add(const Address& addr){
+    uint8_t result = _opcode_add(mmu.readByte(addr));
+    a.set(result);
 }
+
 void CPU::opcode_add(const Register& high, const Register& low){
+    uint16_t result = _opcode_add(high, low);
+    setHL(result);
+}
+
+void CPU::opcode_add_sp(){
+    // TODO
+
+}
+void CPU::opcode_add_hl(){
+    // TODO
 }
 
 // AND
