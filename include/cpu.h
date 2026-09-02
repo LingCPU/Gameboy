@@ -80,7 +80,7 @@ private:
     // ADD
     void opcode_add(); // add A, d8
     void opcode_add(const Register& reg); // add only ever loads into register A from another 8bit register
-    void opcode_add(const Address& addr);
+    void opcode_add(const Address& addr); // adds val from address of HL to A
     void opcode_add(const Register& high, const Register& low); // add HL, rr
     void opcode_add_sp(); // add SP, r8
     void opcode_add_hl(); // add HL, SP
