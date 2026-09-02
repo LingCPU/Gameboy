@@ -76,6 +76,7 @@ private:
     void opcode_adc(); // adc only ever loads into register A
     void opcode_adc(const Register& reg);
     void opcode_adc(const Address& addr);
+    uint8_t opcode_adc_Helper(const uint8_t value);
 
     // ADD
     void opcode_add(); // add A, d8

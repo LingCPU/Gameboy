@@ -1,44 +1,32 @@
 #include "cpu.h"
 
 // ADC
-void CPU::opcode_adc(){
+uint8_t CPU::opcode_adc_Helper(const uint8_t val){
     uint8_t reg = a.value();
-    uint8_t val = getByteFromPC();
     uint8_t carry = flagCarry() ? 1 : 0;
     uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(val) + carry;
-    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
     setFlags({
         .zero = (result & 0xFF) == 0,
         .subtract = false,
         .halfCarry = ((reg & 0x0F) + (val & 0x0F) + carry) > 0x0F,
         .carry = result > 0xFF
     });
+    return static_cast<uint8_t>(result & 0xFF);
 }
+
+void CPU::opcode_adc(){
+    uint8_t result = opcode_adc_Helper(getByteFromPC());
+    a.set(result); 
+}
+
 void CPU::opcode_adc(const Register& reg){
-    uint8_t regA = a.value();
-    uint8_t regVal = reg.value();
-    uint8_t carry = flagCarry() ? 1 : 0;
-    uint16_t result = static_cast<uint16_t>(regA) + static_cast<uint16_t>(regVal) + carry;
-    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
-    setFlags({
-        .zero = (result & 0xFF) == 0,
-        .subtract = false,
-        .halfCarry = ((regA & 0x0F) + (regVal & 0x0F) + carry) > 0x0F,
-        .carry = result > 0xFF
-    });
+    uint8_t result = opcode_adc_Helper(reg.value());
+    a.set(result);
 }
+
 void CPU::opcode_adc(const Address& addr){
-    uint8_t reg = a.value();
-    uint8_t memVal = mmu.readByte(addr);
-    uint8_t carry = flagCarry() ? 1 : 0;
-    uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(memVal) + carry;
-    a.set(static_cast<uint8_t>(result & 0xFF)); // Store the lower 8 bits back into A
-    setFlags({
-        .zero = (result & 0xFF) == 0,
-        .subtract = false,
-        .halfCarry = ((reg & 0x0F) + (memVal & 0x0F) + carry) > 0x0F,
-        .carry = result > 0xFF
-    });
+    uint8_t result = opcode_adc_Helper(mmu.readByte(addr));
+    a.set(result);
 }
 
 // ADD
