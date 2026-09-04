@@ -16,10 +16,10 @@ enum class Condition{
 };
 
 struct Flags{
-    const bool zero;
-    const bool subtract;
-    const bool halfCarry;
-    const bool carry;
+    bool zero;
+    bool subtract;
+    bool halfCarry;
+    bool carry;
 };
 
 class CPU{
