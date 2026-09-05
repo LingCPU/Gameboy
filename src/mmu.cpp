@@ -1,13 +1,10 @@
 #include "mmu.h"
 
-MMU::MMU(){
+MMU::MMU(Cartridge& inCartridge) : cartridge(inCartridge){
+
 }
 
 uint8_t MMU::readByte(const Address adr) const{   
-    return 0;
-}
-
-uint16_t MMU::readWord(const Address adr) const{
     return 0;
 }
 

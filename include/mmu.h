@@ -3,21 +3,20 @@
 #define MMU_H
 
 #include <cstdint>
-#include "memory.h"
 #include "address.h"
+#include "cartridge.h"
 
 class MMU{
 public: 
-    MMU();
+    MMU(Cartridge& cartridge);
 
     uint8_t readByte(const Address addr) const;
-    uint16_t readWord(const Address addr) const;
 
     void writeByte(const Address addr, const uint8_t byte);
     void writeWord(const Address addr, const uint16_t word);
 
 private:
-    Memory memory;
+    Cartridge& cartridge;
 };
 
 
