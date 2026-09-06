@@ -4,12 +4,11 @@ MMU::MMU(Cartridge& inCartridge) : cartridge(inCartridge){
 
 }
 
-uint8_t MMU::readByte(const Address adr) const{   
-    return 0;
+uint8_t MMU::readByte(const Address addr) const{   
 }
 
-void MMU::writeByte(const Address adr, const uint8_t byte){
+void MMU::writeByte(const Address addr, const uint8_t byte){
 }
 
-void MMU::writeWord(const Address adr, const uint16_t word){
+void MMU::writeWord(const Address addr, const uint16_t word){
 }

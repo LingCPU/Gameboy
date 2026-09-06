@@ -24,14 +24,16 @@ struct Flags{
 
 class CPU{
 public:
-    CPU();
+    CPU(MMU& mmu);
+
+    void tick();
 
     void executeOpcode(const uint8_t opcode);
     void executeRegularOpcode(const uint8_t opcode);
     void executeCBOpcode();
 
 private:
-    MMU mmu;
+    MMU& mmu;
     Clock clock;
 
     // 8-bit Registers:
