@@ -2,7 +2,7 @@
 #include "bitwise.h"
 #include <stdexcept>
 
-CPU::CPU() : pc(0x0000), sp(0xFFFE) { // Initialize PC to 0x0000 and SP to 0xFFFE
+CPU::CPU(MMU& inMMU) : pc(0x0000), sp(0xFFFE), mmu(inMMU){ // Initialize PC to 0x0000 and SP to 0xFFFE
     // Initialize registers to 0
     a.set(0);
     b.set(0);
@@ -12,6 +12,11 @@ CPU::CPU() : pc(0x0000), sp(0xFFFE) { // Initialize PC to 0x0000 and SP to 0xFFF
     f.set(0);
     h.set(0);
     l.set(0);
+}
+
+void CPU::tick(){
+    auto opcode = getByteFromPC();
+    executeOpcode(opcode);
 }
 
 uint8_t CPU::getByteFromPC(){
