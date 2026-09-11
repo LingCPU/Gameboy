@@ -684,7 +684,8 @@ void CPU::opcode_srl(const Address& addr){
 
 // STOP
 void CPU::opcode_stop(){
-    halted = true;
+    // halted = true; 
+    // TODO
 }
 
 // SUB
