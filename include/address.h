@@ -8,10 +8,8 @@
 class Address{
 public:
     explicit Address(uint16_t loc); // For direct 16-bit address values
-    explicit Address(const Register& reg); // For regular registers
-    explicit Address(const Register& high, const Register& low); // For register pairs like BC, DE, HL
     uint16_t value() const;
-    bool inRange(Address high, Address low) const;
+    bool inRange(Address low, Address high) const;
 
 private:
     uint16_t addr = 0x0000; // Default to 0x0000

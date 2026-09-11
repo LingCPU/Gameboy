@@ -8,6 +8,6 @@ uint16_t Address::value() const{
     return addr;
 }
 
-bool Address::inRange(Address high, Address low) const{
+bool Address::inRange(Address low, Address high) const{
     return low.value() <= value() && value() <= high.value();
 }

@@ -895,7 +895,7 @@ void CPU::opcode_DE(){ // SBC A, d8
 }
 
 void CPU::opcode_DF(){ // RST 18H
-    opcode_rst(18);
+    opcode_rst(0x18);
 }
 
 void CPU::opcode_E0(){ // LDH (a8), A
