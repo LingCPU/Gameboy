@@ -15,13 +15,6 @@ enum class Condition{
     C
 };
 
-struct Flags{
-    bool zero;
-    bool subtract;
-    bool halfCarry;
-    bool carry;
-};
-
 class CPU{
 public:
     CPU(MMU& mmu);
