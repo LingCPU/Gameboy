@@ -88,13 +88,15 @@ private:
     void opcode_add_hl(); // add HL, SP
 
     // AND
+    uint8_t _opcode_and(uint8_t val);
     void opcode_and();
     void opcode_and(Register& reg);
     void opcode_and(const Address& addr);
 
-    // BIT -TODO: fix type
-    void opcode_bit(const int bit, Register& reg);
-    void opcode_bit(const int bit, const Address& addr);
+    // BIT
+    void _opcode_bit(const uint8_t bit, const uint8_t val);
+    void opcode_bit(const uint8_t bit, Register& reg);
+    void opcode_bit(const uint8_t bit, const Address& addr);
 
     // CALL
     void opcode_call();

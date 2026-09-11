@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "bitwise.h"
 
 // ADC
 uint8_t CPU::_opcode_adc(const uint8_t val){
@@ -83,20 +84,55 @@ void CPU::opcode_add_hl(){
 }
 
 // AND
+uint8_t CPU::_opcode_and(uint8_t val){
+    uint8_t reg = a.value();
+    uint8_t result = reg & val;
+
+    setFlagZero(result == 0);
+    setFlagSubtract(false);
+    setFlagHalfCarry(true);
+    setFlagCarry(false);
+
+    return result;
+}
 void CPU::opcode_and(){
+    a.set(_opcode_and(getByteFromPC()));
 }
 void CPU::opcode_and(Register& reg){
+    a.set(_opcode_and(reg.value()));
 }
 void CPU::opcode_and(const Address& addr){
+    a.set(_opcode_and(mmu.readByte(addr)));
 }
 
 // BIT
+void CPU::_opcode_bit(const uint8_t bit, const uint8_t val){
+    setFlagZero(!checkBit(val, bit));
+    setFlagSubtract(false);
+    setFlagHalfCarry(true);
+}
+
+void CPU::opcode_bit(const uint8_t bit, Register& reg){
+    _opcode_bit(bit, reg.value());
+}
+
+void CPU::opcode_bit(const uint8_t bit, const Address& addr){
+    _opcode_bit(bit, mmu.readByte(addr));
+}
 
 // CALL
 void CPU::opcode_call(){
     uint16_t address = getWordFromPC();
     stackPush(pc);
     pc = address;
+}
+
+void CPU::opcode_call(Condition cond){
+    uint16_t address = getWordFromPC();
+    if(isCondition(cond)){
+        stackPush(pc);
+        pc = address;
+    }
 }
 
 // CCF
