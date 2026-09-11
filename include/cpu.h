@@ -38,10 +38,13 @@ private:
     uint16_t getDE() const { return pairVal(d, e); }
     uint16_t getHL() const { return pairVal(h, l); }
 
-    void setAF(uint16_t word) { setPair(a, f, word); }
-    void setBC(uint16_t word) { setPair(b, c, word); }
-    void setDE(uint16_t word) { setPair(d, e, word); }
-    void setHL(uint16_t word) { setPair(h, l, word); }
+    void setAF(uint16_t word){
+        a.set(static_cast<uint8_t>(word >> 8));
+        f.set(static_cast<uint8_t>(word & 0xF0));
+    }
+    void setBC(uint16_t word){ setPair(b, c, word); }
+    void setDE(uint16_t word){ setPair(d, e, word); }
+    void setHL(uint16_t word){ setPair(h, l, word); }
 
     // Program Counter and Stack Pointer registers
     uint16_t pc;
