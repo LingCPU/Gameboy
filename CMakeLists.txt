@@ -1,28 +1,30 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.16)
 
-project(gameboy)
+project(gameboy LANGUAGES CXX)
 
-add_definitions(-std=c++20)
-add_definitions(-stdlib=libc++)
-add_definitions(-g)
-add_definitions(-Wall -Wextra -Wpedantic)
-add_definitions(-Wno-gnu-zero-variadic-macro-arguments)
-add_definitions(-ferror-limit=10000)
-add_definitions(-Wno-unused-parameter)
-add_definitions(-Wno-unused-private-field)
-add_definitions(-Wno-unused-function)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(emulator
     src/address.cpp
+    src/cartridge.cpp
     src/clock.cpp
-    src/cpp.cpp
+    src/cpu.cpp
     src/files.cpp
     src/gameboy.cpp
     src/main.cpp
-    src/memory.cpp
     src/mmu.cpp
     src/opcodeLink.cpp
     src/opcodeLinkCB.cpp
     src/opcodes.cpp
     src/register.cpp
+)
+
+target_include_directories(emulator PRIVATE include)
+
+target_compile_options(emulator PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
 )
