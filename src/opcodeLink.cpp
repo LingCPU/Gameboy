@@ -962,7 +962,7 @@ void CPU::opcode_F0(){ // LDH A, (a8)
 }
 
 void CPU::opcode_F1(){ // POP AF
-    opcode_pop(a, f);
+    setAF(stackPop()); // AF is special bc F only has 0 in lower bits
 }
 
 void CPU::opcode_F2(){ // LD A, (C)

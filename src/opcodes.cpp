@@ -283,9 +283,8 @@ void CPU::opcode_jp(){
     pc = getWordFromPC();
 }
 
-void CPU::opcode_jp(const Address& addr){   
-    // addr parameter unused cause only HL is used, ignore the warning
-    pc = getHL();
+void CPU::opcode_jp(const Address& addr){
+    pc = addr.value();
 }
 
 void CPU::opcode_jp(Condition cond){
