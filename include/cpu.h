@@ -46,9 +46,8 @@ private:
     // Program Counter and Stack Pointer registers
     uint16_t pc;
     uint16_t sp;
-    void incrementSP() { sp++; }
-    void decrementSP() { sp--; }
-    // SP only needs to be incremented/decremented when pushing/popping from stack
+    void stackPush(uint16_t val);
+    uint16_t stackPop();
 
     uint8_t getByteFromPC();
     uint16_t getWordFromPC();

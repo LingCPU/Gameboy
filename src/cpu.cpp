@@ -19,6 +19,23 @@ void CPU::tick(){
     executeOpcode(opcode);
 }
 
+void CPU::stackPush(uint16_t val){
+    uint8_t high = static_cast<uint8_t>(val >> 8);
+    uint8_t low = static_cast<uint8_t>(val & 0xFF);
+    --sp;
+    mmu.writeByte(Address(sp), high);
+    --sp;
+    mmu.writeByte(Address(sp), low);
+}
+
+uint16_t CPU::stackPop(){
+    uint8_t low = mmu.readByte(Address(sp));
+    ++sp;
+    uint8_t high = mmu.readByte(Address(sp));
+    ++sp;
+    return composeByte(high, low);
+}
+
 uint8_t CPU::getByteFromPC(){
     // This will read the byte at the current PC and then increment the PC
     uint8_t byte = mmu.readByte(Address(pc));
