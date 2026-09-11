@@ -172,7 +172,7 @@ private:
     void opcode_or(const Address& addr);
 
     // POP
-    void opcode_pop(const Register& high, const Register& low);
+    void opcode_pop(Register& high, Register& low);
 
     // PUSH
     void opcode_push(const Register& high, const Register& low);

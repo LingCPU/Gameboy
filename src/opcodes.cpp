@@ -93,6 +93,11 @@ void CPU::opcode_and(const Address& addr){
 // BIT
 
 // CALL
+void CPU::opcode_call(){
+    uint16_t address = getWordFromPC();
+    stackPush(pc);
+    pc = address;
+}
 
 // CCF
 void CPU::opcode_ccf(){
@@ -111,7 +116,6 @@ void CPU::opcode_daa(){}
 
 // DEC
 void CPU::opcode_dec(){
-    decrementSP();
 }
 
 void CPU::opcode_dec(Register& reg){
@@ -140,8 +144,8 @@ void CPU::opcode_halt(){};
 
 // INC
 void CPU::opcode_inc(){
-    incrementSP();
 }
+
 void CPU::opcode_inc(Register& reg){
     reg.increment();
     auto result = reg.value();
@@ -204,8 +208,14 @@ void CPU::opcode_ld(const Address& addr, const Register& reg){
 // OR
 
 // POP
+void CPU::opcode_pop(Register& high, Register& low){
+    setPair(high, low, stackPop());
+}
 
 // PUSH
+void CPU::opcode_push(const Register& high, const Register& low){
+    stackPush(pairVal(high, low));
+}
 
 // RLA
 
@@ -218,6 +228,9 @@ void CPU::opcode_ld(const Address& addr, const Register& reg){
 // RST
 
 // RET
+void CPU::opcode_ret(){
+    pc = stackPop();
+}
 
 // RETI
 
