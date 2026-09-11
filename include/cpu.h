@@ -19,11 +19,11 @@ class CPU{
 public:
     CPU(MMU& mmu);
 
-    void tick();
+    uint8_t tick();
 
-    void executeOpcode(const uint8_t opcode);
-    void executeRegularOpcode(const uint8_t opcode);
-    void executeCBOpcode();
+    uint8_t executeOpcode(const uint8_t opcode);
+    uint8_t executeRegularOpcode(const uint8_t opcode);
+    uint8_t executeCBOpcode();
 
 private:
     MMU& mmu;
@@ -31,6 +31,7 @@ private:
 
     bool interruptsEnabled = false;
     bool halted = false;
+    bool branchTaken = false;
 
     // 8-bit Registers:
     Register a, b, c, d, e, f, h, l;
@@ -71,7 +72,7 @@ private:
     void setFlagCarry(bool value);
 
     // Condition
-    bool isCondition(Condition condition) const;
+    bool isCondition(Condition condition);
 
     // Opcode helpers:
     // ADC

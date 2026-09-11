@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "bitwise.h"
+#include "opcodeCycles.h"
 #include <stdexcept>
 
 CPU::CPU(MMU& inMMU) : pc(0x0000), sp(0xFFFE), mmu(inMMU){ // Initialize PC to 0x0000 and SP to 0xFFFE
@@ -14,9 +15,9 @@ CPU::CPU(MMU& inMMU) : pc(0x0000), sp(0xFFFE), mmu(inMMU){ // Initialize PC to 0
     l.set(0);
 }
 
-void CPU::tick(){
+uint8_t CPU::tick(){
     auto opcode = getByteFromPC();
-    executeOpcode(opcode);
+    return executeOpcode(opcode);
 }
 
 void CPU::stackPush(uint16_t val){
@@ -85,22 +86,25 @@ void CPU::setFlagCarry(bool value){
     else f.set(clearBit(f.value(), 4));
 }
 
-bool CPU::isCondition(Condition condition) const{
+bool CPU::isCondition(Condition condition){
+    bool conditionMet = false;
     switch(condition){
-        case Condition::NZ: return !flagZero();
-        case Condition::Z : return flagZero();
-        case Condition::NC: return !flagCarry();
-        case Condition::C : return flagCarry();
+        case Condition::NZ: conditionMet = !flagZero(); break;
+        case Condition::Z : conditionMet = flagZero(); break;
+        case Condition::NC: conditionMet = !flagCarry(); break;
+        case Condition::C : conditionMet = flagCarry(); break;
     }
-    return false;
+    branchTaken = conditionMet;
+    return conditionMet;
 }
 
-void CPU::executeOpcode(const uint8_t opcode){
+uint8_t CPU::executeOpcode(const uint8_t opcode){
+    branchTaken = false;
     if(opcode != 0xCB) executeRegularOpcode(opcode);
     else executeCBOpcode();
 }
 
-void CPU::executeRegularOpcode(const uint8_t opcode){
+uint8_t CPU::executeRegularOpcode(const uint8_t opcode){
     switch (opcode){
         case 0x00: opcode_00(); break; case 0x10: opcode_10(); break; case 0x20: opcode_20(); break; case 0x30: opcode_30(); break; case 0x40: opcode_40(); break; case 0x50: opcode_50(); break; case 0x60: opcode_60(); break; case 0x70: opcode_70(); break; case 0x80: opcode_80(); break; case 0x90: opcode_90(); break; case 0xA0: opcode_A0(); break; case 0xB0: opcode_B0(); break; case 0xC0: opcode_C0(); break; case 0xD0: opcode_D0(); break; case 0xE0: opcode_E0(); break; case 0xF0: opcode_F0(); break;
         case 0x01: opcode_01(); break; case 0x11: opcode_11(); break; case 0x21: opcode_21(); break; case 0x31: opcode_31(); break; case 0x41: opcode_41(); break; case 0x51: opcode_51(); break; case 0x61: opcode_61(); break; case 0x71: opcode_71(); break; case 0x81: opcode_81(); break; case 0x91: opcode_91(); break; case 0xA1: opcode_A1(); break; case 0xB1: opcode_B1(); break; case 0xC1: opcode_C1(); break; case 0xD1: opcode_D1(); break; case 0xE1: opcode_E1(); break; case 0xF1: opcode_F1(); break;
@@ -120,9 +124,10 @@ void CPU::executeRegularOpcode(const uint8_t opcode){
         case 0x0F: opcode_0F(); break; case 0x1F: opcode_1F(); break; case 0x2F: opcode_2F(); break; case 0x3F: opcode_3F(); break; case 0x4F: opcode_4F(); break; case 0x5F: opcode_5F(); break; case 0x6F: opcode_6F(); break; case 0x7F: opcode_7F(); break; case 0x8F: opcode_8F(); break; case 0x9F: opcode_9F(); break; case 0xAF: opcode_AF(); break; case 0xBF: opcode_BF(); break; case 0xCF: opcode_CF(); break; case 0xDF: opcode_DF(); break; case 0xEF: opcode_EF(); break; case 0xFF: opcode_FF(); break;
     default: throw std::invalid_argument("Opcode does not exist");
     }
+    return branchTaken ? opcodeCycles::branched[opcode] : opcodeCycles::normal[opcode];
 }
 
-void CPU::executeCBOpcode(){
+uint8_t CPU::executeCBOpcode(){
     uint8_t opcode = getByteFromPC();
     switch (opcode){
         case 0x00: opcode_CB_00(); break; case 0x10: opcode_CB_10(); break; case 0x20: opcode_CB_20(); break; case 0x30: opcode_CB_30(); break; case 0x40: opcode_CB_40(); break; case 0x50: opcode_CB_50(); break; case 0x60: opcode_CB_60(); break; case 0x70: opcode_CB_70(); break; case 0x80: opcode_CB_80(); break; case 0x90: opcode_CB_90(); break; case 0xA0: opcode_CB_A0(); break; case 0xB0: opcode_CB_B0(); break; case 0xC0: opcode_CB_C0(); break; case 0xD0: opcode_CB_D0(); break; case 0xE0: opcode_CB_E0(); break; case 0xF0: opcode_CB_F0(); break;
@@ -143,5 +148,6 @@ void CPU::executeCBOpcode(){
         case 0x0F: opcode_CB_0F(); break; case 0x1F: opcode_CB_1F(); break; case 0x2F: opcode_CB_2F(); break; case 0x3F: opcode_CB_3F(); break; case 0x4F: opcode_CB_4F(); break; case 0x5F: opcode_CB_5F(); break; case 0x6F: opcode_CB_6F(); break; case 0x7F: opcode_CB_7F(); break; case 0x8F: opcode_CB_8F(); break; case 0x9F: opcode_CB_9F(); break; case 0xAF: opcode_CB_AF(); break; case 0xBF: opcode_CB_BF(); break; case 0xCF: opcode_CB_CF(); break; case 0xDF: opcode_CB_DF(); break; case 0xEF: opcode_CB_EF(); break; case 0xFF: opcode_CB_FF(); break;
     default: throw std::invalid_argument("Opcode does not exist");
     }
+    return opcodeCycles::cb[opcode];
 }
 
