@@ -10,6 +10,7 @@ public:
     void run();
 
 private:
+    Cartridge cartridge;
     MMU mmu;
     CPU cpu;
 };

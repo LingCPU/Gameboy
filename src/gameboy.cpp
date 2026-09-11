@@ -1,6 +1,10 @@
 #include "gameboy.h"
+#include <utility>
 
-Gameboy::Gameboy(Cartridge cartridge) : mmu(cartridge), cpu(mmu){
+Gameboy::Gameboy(Cartridge inCartridge) 
+: cartridge(std::move(inCartridge)), 
+  mmu(cartridge), 
+  cpu(mmu){
     
 }
 
