@@ -29,6 +29,9 @@ private:
     MMU& mmu;
     Clock clock;
 
+    bool interruptsEnabled = false;
+    bool halted = false;
+
     // 8-bit Registers:
     Register a, b, c, d, e, f, h, l;
 
@@ -106,6 +109,7 @@ private:
     void opcode_ccf();
 
     // CP
+    void _opcode_cp(const uint8_t val);
     void opcode_cp();
     void opcode_cp(Register& reg);
     void opcode_cp(const Address& addr);
@@ -146,32 +150,36 @@ private:
     void opcode_jr();
     void opcode_jr(Condition cond);
 
-    // LD - TODO : something for F8 and F9, LD HL, SP+r8 and LD SP, HL, and for ld sp
+    // LD
     void opcode_ld(Register& reg); 
     void opcode_ld(Register& dest, const Register& src); 
     void opcode_ld(Register& reg, const Address& addr);
-    void opcode_ld_pair(Register& high, Register& low); 
-    void opcode_ld_sp(const Address& addr); // ld a16 sp
-    void opcode_ld_sp(Register& high, Register& low);
-    void opcode_ld_sp(); 
     void opcode_ld(const Address& addr); // LD (HL), d8
     void opcode_ld(const Address& addr, const Register& reg); 
 
-    void opcode_ld_c_a(); // ld (C), A
-    void opcode_ld_a_c(); // ld A, (C)
-    void opcode_ld_hl(); // ld HL, SP+r8
+    void opcode_ld_pair(Register& high, Register& low); 
 
-    void opcode_ld_addr(); // ld A, (a16)
-    void opcode_ld_addr(Register& reg); // ld (a16), A
+    void opcode_ld_sp(); // Opcode 31, LD SP, d16
+    void opcode_ld_sp(const Address& addr); // Opcode 08, LD (a16), SP
+    void opcode_ld_sp(Register& high, Register& low); // Opcode F9, LD SP, HL
+
+    void opcode_ld_hl(); // Opcode F8, LD HL, SP+r8
+
+    void opcode_ld_c_a(); // Opcode E2, LD (C), A
+    void opcode_ld_a_c(); // Opcode F2, LD A, (C)
+
+    void opcode_ld_addr(); // Opcode FA, LD A, (a16)
+    void opcode_ld_addr(Register& reg); // Opcode EA, LD (a16), A
 
     // LDH
     void opcode_ldh(); // ldh A, (a8)
-    void opcode_ldh(Register& reg); // ldh (a8), A
+    void opcode_ldh(const Register& reg); // ldh (a8), A
 
     // NOP
     void opcode_nop();
 
     // OR
+    uint8_t _opcode_or(uint8_t val);
     void opcode_or();
     void opcode_or(const Register& reg);
     void opcode_or(const Address& addr);
@@ -183,12 +191,15 @@ private:
     void opcode_push(const Register& high, const Register& low);
 
     // RL
+    uint8_t _opcode_rl(uint8_t val);
     void opcode_rl(const Address& addr);
     void opcode_rl(Register& reg);
+
     // RLA
     void opcode_rla();
 
     // RLC
+    uint8_t _opcode_rlc(uint8_t val);
     void opcode_rlc(const Address& addr);
     void opcode_rlc(Register& reg);
 
@@ -196,6 +207,7 @@ private:
     void opcode_rlca();
 
     // RR
+    uint8_t _opcode_rr(uint8_t val);
     void opcode_rr(const Address& addr);
     void opcode_rr(Register& reg);
 
@@ -203,14 +215,15 @@ private:
     void opcode_rra();
 
     // RRC
+    uint8_t _opcode_rrc(uint8_t val);
     void opcode_rrc(const Address& addr);
     void opcode_rrc(Register& reg);
 
     // RRCA
     void opcode_rrca();
 
-    // RST -TODO: fix type
-    void opcode_rst(const int offset);
+    // RST 
+    void opcode_rst(const uint8_t offset);
 
     // RES
     void opcode_res(const int bit, Register& reg);
@@ -224,6 +237,7 @@ private:
     void opcode_reti();
 
     // SBC // everything goes into A
+    uint8_t _opcode_sbc(uint8_t val);
     void opcode_sbc(); // for immediate val into A
     void opcode_sbc(Register& reg); 
     void opcode_sbc(const Address& addr);
@@ -232,18 +246,21 @@ private:
     void opcode_scf();
 
     // SET
-    void opcode_set(const int bit, const Address& addr);
-    void opcode_set(const int bit, Register& reg);
+    void opcode_set(const uint8_t bit, const Address& addr);
+    void opcode_set(const uint8_t bit, Register& reg);
 
     // SLA
+    uint8_t _opcode_sla(uint8_t val);
     void opcode_sla(Register& reg);
     void opcode_sla(const Address& addr);
 
     // SRA
+    uint8_t _opcode_sra(uint8_t val);
     void opcode_sra(Register& reg);
     void opcode_sra(const Address& addr);
 
     // SRL 
+    uint8_t _opcode_srl(uint8_t val);
     void opcode_srl(Register& reg);
     void opcode_srl(const Address& addr);
 
@@ -251,15 +268,18 @@ private:
     void opcode_stop();
 
     // SUB
+    uint8_t _opcode_sub(uint8_t val);
     void opcode_sub();
     void opcode_sub(Register& reg);
     void opcode_sub(const Address& addr);
 
     // SWAP
+    uint8_t _opcode_swap(uint8_t val);
     void opcode_swap(Register& reg);
     void opcode_swap(const Address& addr);
 
     // XOR
+    uint8_t _opcode_xor(uint8_t val);
     void opcode_xor();
     void opcode_xor(const Address& addr);
     void opcode_xor(const Register& reg);
