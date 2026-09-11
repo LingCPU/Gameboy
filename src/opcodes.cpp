@@ -145,7 +145,7 @@ void CPU::opcode_inc(){
 void CPU::opcode_inc(Register& reg){
     reg.increment();
     auto result = reg.value();
-    
+
     setFlagZero(result == 0);
     setFlagSubtract(false);
     setFlagHalfCarry((result & 0x0F) == 0);
@@ -165,8 +165,15 @@ void CPU::opcode_jp(const Address& addr){}
 void CPU::opcode_jp(Condition cond){}
 
 // JR
-void CPU::opcode_jr(){}
-void CPU::opcode_jr(Condition cond){}
+void CPU::opcode_jr(){
+    int8_t offset = static_cast<int8_t>(getByteFromPC());
+    pc = static_cast<uint16_t>(pc + offset);
+}
+
+void CPU::opcode_jr(Condition cond){
+    int8_t offset = static_cast<int8_t>(getByteFromPC());
+    if(isCondition(cond)) pc = static_cast<uint16_t>(pc + offset);
+}
 
 // LD
 void CPU::opcode_ld(Register& reg){
