@@ -17,6 +17,7 @@ public:
 
 private:
     Cartridge& cartridge;
+    bool bootROMLoaded = true; // Todo true for now
 };
 
 
