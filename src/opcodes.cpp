@@ -5,12 +5,10 @@ uint8_t CPU::_opcode_adc(const uint8_t val){
     uint8_t reg = a.value();
     uint8_t carry = flagCarry() ? 1 : 0;
     uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(val) + carry;
-    setFlags({
-        .zero = (result & 0xFF) == 0,
-        .subtract = false,
-        .halfCarry = ((reg & 0x0F) + (val & 0x0F) + carry) > 0x0F,
-        .carry = result > 0xFF
-    });
+    setFlagZero((result & 0xFF) == 0);
+    setFlagSubtract(false);
+    setFlagHalfCarry(((reg & 0x0F) + (val & 0x0F) + carry) > 0x0F);
+    setFlagCarry(result > 0xFF);
     return static_cast<uint8_t>(result & 0xFF);
 }
 
@@ -33,25 +31,21 @@ void CPU::opcode_adc(const Address& addr){
 uint8_t CPU::_opcode_add(const uint8_t val){
     uint8_t reg = a.value();
     uint16_t result = static_cast<uint16_t>(reg) + static_cast<uint16_t>(val);
-    setFlags({
-        .zero = (result & 0xFF) == 0,
-        .subtract = false,
-        .halfCarry = (reg & 0x0F) + (val & 0x0F) > 0x0F,
-        .carry = result > 0xFF
-    });
+    setFlagZero((result & 0xFF) == 0);
+    setFlagSubtract(false);
+    setFlagHalfCarry((reg & 0x0F) + (val & 0x0F) > 0x0F);
+    setFlagCarry(result > 0xFF);
     return static_cast<uint8_t>(result & 0xFF);
 }
 
 uint16_t CPU::_opcode_add(const Register& high, const Register& low){
     uint16_t reg = getHL();
     uint16_t val = pairVal(high, low);
-    uint16_t result = reg + val;
-    setFlags({
-        .subtract = false,
-        .halfCarry = (reg & 0xFFF) + (val & 0xFFF) > 0xFFF,
-        .carry = result > 0xFFFF
-    });
-    return result;
+    uint32_t result = static_cast<uint32_t>(reg) + static_cast<uint32_t>(val);
+    setFlagSubtract(false);
+    setFlagHalfCarry((reg & 0x0FFF) + (val & 0x0FFF) > 0x0FFF);
+    setFlagCarry(result > 0xFFFF);
+    return static_cast<uint16_t>(result); // couldn't figure out how to escape overflow
 }
 
 void CPU::opcode_add(){
@@ -113,12 +107,19 @@ void CPU::opcode_daa(){}
 void CPU::opcode_dec(){
     decrementSP();
 }
+
 void CPU::opcode_dec(Register& reg){
     reg.decrement();
+    auto result = reg.value();
+    setFlagZero(result == 0);
+    setFlagSubtract(true);
+    setFlagHalfCarry((result & 0x0F) == 0x0F);
 }
+
 void CPU::opcode_dec(Register& high, Register& low){
     decrementPair(high, low);
 }
+
 void CPU::opcode_dec(const Address& addr){
 
 }
@@ -136,10 +137,16 @@ void CPU::opcode_inc(){
 }
 void CPU::opcode_inc(Register& reg){
     reg.increment();
+    auto result = reg.value();
+    setFlagZero(result == 0);
+    setFlagSubtract(false);
+    setFlagHalfCarry((result & 0x0F) == 0);
 }
+
 void CPU::opcode_inc(Register& high, Register& low){
     incrementPair(high, low);
 }
+
 void CPU::opcode_inc(const Address& addr){
     
 }

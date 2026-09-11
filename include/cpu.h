@@ -61,13 +61,12 @@ private:
     uint16_t getWordFromPC();
 
     // Flags
-    void setFlags(Flags flags);
-
     bool flagZero() const;
     bool flagSubtract() const;
     bool flagHalfCarry() const;
     bool flagCarry() const;
 
+    // set separate flags one at a time
     void setFlagZero(bool value);
     void setFlagSubtract(bool value);
     void setFlagHalfCarry(bool value);

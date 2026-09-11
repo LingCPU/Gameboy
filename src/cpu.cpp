@@ -32,13 +32,6 @@ uint16_t CPU::getWordFromPC(){
     return composeByte(high, low);
 }
 
-void CPU::setFlags(Flags flags){
-    setFlagZero(flags.zero);
-    setFlagSubtract(flags.subtract);
-    setFlagHalfCarry(flags.halfCarry);
-    setFlagCarry(flags.carry);
-}
-
 bool CPU::flagZero() const {
     return checkBit(f.value(), 7);
 }
