@@ -52,7 +52,7 @@ uint16_t CPU::_opcode_add(const Register& high, const Register& low){
     setFlagHalfCarry((reg & 0x0FFF) + (val & 0x0FFF) > 0x0FFF);
     setFlagCarry(result > 0xFFFF);
 
-    return static_cast<uint16_t>(result); // couldn't figure out how to escape overflow
+    return static_cast<uint16_t>(result);
 }
 
 void CPU::opcode_add(){
@@ -76,11 +76,27 @@ void CPU::opcode_add(const Register& high, const Register& low){
 }
 
 void CPU::opcode_add_sp(){
-    // TODO
+    uint8_t raw = getByteFromPC();
+    int8_t offset = static_cast<int8_t>(raw);
+    uint16_t oldSP = sp;
+    uint16_t result = static_cast<uint16_t>(static_cast<int32_t>(sp) + offset);
 
+    setFlagZero(false);
+    setFlagSubtract(false);
+    setFlagHalfCarry(((oldSP & 0x0F) + (raw & 0x0F)) > 0x0F);
+    setFlagCarry(((oldSP & 0xFF) + raw) > 0xFF);
+
+    sp = result;
 }
+
 void CPU::opcode_add_hl(){
-    // TODO
+    uint16_t hl = getHL();
+    uint32_t result = static_cast<uint32_t>(hl) + static_cast<uint32_t>(sp);
+
+    setFlagSubtract(false);
+    setFlagHalfCarry(((hl & 0x0FFF) + (sp & 0x0FFF)) > 0x0FFF);
+    setFlagCarry(result > 0xFFFF);
+    setHL(static_cast<uint16_t>(result));
 }
 
 // AND
@@ -384,7 +400,7 @@ uint8_t CPU::_opcode_or(uint8_t val){
     uint8_t reg = a.value();
     uint8_t result = reg | val;
 
-    setFlagZero(a.value() == 0);
+    setFlagZero(result == 0);
     setFlagHalfCarry(false);
     setFlagCarry(false);
     setFlagSubtract(false);
@@ -533,6 +549,16 @@ void CPU::opcode_rrca(){
 void CPU::opcode_rst(const uint8_t offset){
     stackPush(pc);
     pc = offset;
+}
+
+// RES
+void CPU::opcode_res(const uint8_t bit, Register& reg){
+    reg.set(clearBit(reg.value(), bit));
+}
+
+void CPU::opcode_res(const uint8_t bit, const Address& addr){
+    uint8_t val = mmu.readByte(addr);
+    mmu.writeByte(addr, clearBit(val, bit));
 }
 
 // RET

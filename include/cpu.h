@@ -226,8 +226,8 @@ private:
     void opcode_rst(const uint8_t offset);
 
     // RES
-    void opcode_res(const int bit, Register& reg);
-    void opcode_res(const int bit, const Address& addr);
+    void opcode_res(const uint8_t bit, Register& reg);
+    void opcode_res(const uint8_t bit, const Address& addr);
 
     // RET
     void opcode_ret();
