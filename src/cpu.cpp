@@ -68,6 +68,16 @@ void CPU::setFlagCarry(bool value){
     else f.set(clearBit(f.value(), 4));
 }
 
+bool CPU::isCondition(Condition condition) const{
+    switch(condition){
+        case Condition::NZ: return !flagZero();
+        case Condition::Z : return flagZero();
+        case Condition::NC: return !flagCarry();
+        case Condition::C : return flagCarry();
+    }
+    return false;
+}
+
 void CPU::executeOpcode(const uint8_t opcode){
     if(opcode != 0xCB) executeRegularOpcode(opcode);
     else executeCBOpcode();

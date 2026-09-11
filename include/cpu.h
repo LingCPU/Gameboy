@@ -65,6 +65,9 @@ private:
     void setFlagHalfCarry(bool value);
     void setFlagCarry(bool value);
 
+    // Condition
+    bool isCondition(Condition condition) const;
+
     // Opcode helpers:
     // ADC
     uint8_t _opcode_adc(const uint8_t value);
