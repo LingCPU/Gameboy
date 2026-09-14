@@ -63,7 +63,7 @@ void Clock::tickTCycle(){
         if(reloadDelay == 0){
             tima = tma;
             reloadPending = false;
-            timerInterruptRequest = true;
+            timerInterruptRequested = true;
         }
     }
     const bool oldSig = timerSignal();

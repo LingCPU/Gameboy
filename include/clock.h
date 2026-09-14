@@ -19,7 +19,7 @@ public:
     void writeTMA(uint8_t val);
     void writeTAC(uint8_t val);
 
-    bool consumeTimeInterrupt();
+    bool consumeTimerInterrupt();
 
 private:
     uint16_t dividerCounter = 0;
