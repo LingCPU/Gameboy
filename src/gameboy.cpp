@@ -14,3 +14,11 @@ void Gameboy::run(){
         mmu.tick(cycles);
     }
 }
+
+void Gameboy::buttonPressed(Button button){
+    mmu.buttonPressed(button);
+}
+
+void Gameboy::buttonReleased(Button button){
+    mmu.buttonReleased(button);
+}

@@ -6,6 +6,8 @@
 #include "address.h"
 #include "cartridge.h"
 #include "interrupt.h"
+#include "clock.h"
+#include "input.h"
 
 class MMU{
 public: 
@@ -20,11 +22,15 @@ public:
     void clearInterrupt(Interrupt interrupt);
     uint8_t pendingInterrupts() const;
 
+    void buttonPressed(Button button);
+    void buttonReleased(Button button);
+
     void tick(uint8_t mCycles);
 
 private:
     Cartridge& cartridge;
     Clock clock;
+    Input input;
 
     uint8_t readIO(uint16_t loc) const;
     void writeIO(uint16_t loc, uint8_t byte);

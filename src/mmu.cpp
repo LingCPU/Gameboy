@@ -2,6 +2,7 @@
 #include "boot.h"
 
 namespace{
+    constexpr uint16_t JOYP = 0xFF00;
     constexpr uint16_t DIV  = 0xFF04;
     constexpr uint16_t TIMA = 0xFF05;
     constexpr uint16_t TMA  = 0xFF06;
@@ -22,7 +23,7 @@ uint8_t MMU::readByte(const Address addr) const{
     if(location <= 0xFDFF) return wram[location - 0xE000];
     if(location <= 0xFE9F) return oam[location - 0xFE00];
     if(location <= 0xFEFF) return 0xFF;
-    if(location <= 0xFF7F) return io[location - 0xFF00];
+    if(location <= 0xFF7F) return readIO(location);
     if(location <= 0xFFFE) return hram[location - 0xFF80];
     
     return interruptEnable;
@@ -50,8 +51,7 @@ void MMU::writeByte(const Address addr, const uint8_t byte){
     }
     if(location <= 0xFEFF) return;
     if(location <= 0xFF7F){
-        io[location - 0xFF00] = byte;
-        if(location == 0xFF50 && byte != 0) bootROMLoaded = false;
+        writeIO(location, byte);
         return;
     }
     if(location <= 0xFFFE){
@@ -81,6 +81,16 @@ uint8_t MMU::pendingInterrupts() const{
     return static_cast<uint8_t>(interruptFlags & interruptEnable & 0x1F);
 }
 
+void MMU::buttonPressed(Button button){
+    if(input.buttonPressed(button)) requestInterrupt(Interrupt::Joypad);
+    
+}
+
+void MMU::buttonReleased(Button button){
+    if(input.buttonReleased(button)) requestInterrupt(Interrupt::Joypad);
+    
+}
+
 void MMU::tick(uint8_t mCycles){
     clock.addTime(mCycles);
     if(clock.consumeTimerInterrupt()) requestInterrupt(Interrupt::Timer);
@@ -88,6 +98,7 @@ void MMU::tick(uint8_t mCycles){
 
 uint8_t MMU::readIO(uint16_t location) const{
     switch(location){
+        case JOYP: return input.read();
         case DIV:  return clock.readDIV();
         case TIMA: return clock.readTIMA();
         case TMA:  return clock.readTMA();
@@ -98,6 +109,9 @@ uint8_t MMU::readIO(uint16_t location) const{
 
 void MMU::writeIO(uint16_t location, uint8_t byte){
     switch(location){
+        case JOYP:
+            if(input.write(byte)) requestInterrupt(Interrupt::Joypad);
+            return;
         case DIV:
             clock.writeDIV();
             return;
