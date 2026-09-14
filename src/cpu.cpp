@@ -15,8 +15,40 @@ CPU::CPU(MMU& inMMU) : pc(0x0000), sp(0xFFFE), mmu(inMMU){ // Initialize PC to 0
 }
 
 uint8_t CPU::tick(){
+    const uint8_t pending = mmu.pendingInterrupts();
+    if(pending != 0){
+        halted = false;
+        if(IME) return serviceInterrupt(pending);
+    }
+    if(halted) return 1;
+
     auto opcode = getByteFromPC();
-    return executeOpcode(opcode);
+    uint8_t cycles = executeOpcode(opcode);
+    updateInterruptEnableDelay();
+
+    return cycles;
+}
+
+uint8_t CPU::serviceInterrupt(uint8_t pending){
+    for(uint8_t bit = 0; bit < 5; ++bit){
+        if((pending & static_cast<uint8_t>(1u << bit)) == 0) continue;
+        Interrupt interrupt = static_cast<Interrupt>(bit);
+        interruptsEnabled = false;
+        interruptEnableDelay = 0;
+        halted = false;
+
+        mmu.clearInterrupt(interrupt);
+        stackPush(pc);
+        pc = interrupts::vector(interrupt);
+        return 5;
+    }
+    return 0;
+}
+
+void CPU::updateInterruptEnableDelay(){
+    if(interruptEnableDelay == 0) return;
+    --interruptEnableDelay;
+    if(interruptEnableDelay == 0) IME = true;
 }
 
 void CPU::stackPush(uint16_t val){
@@ -39,7 +71,8 @@ uint16_t CPU::stackPop(){
 uint8_t CPU::getByteFromPC(){
     // This will read the byte at the current PC and then increment the PC
     uint8_t byte = mmu.readByte(Address(pc));
-    pc++;
+    if(haltBug) haltBug = false;
+    else ++pc;
     return byte;
 }
 

@@ -1,4 +1,3 @@
-// Not included in original gameboy but this helps
 #ifndef MMU_H
 #define MMU_H
 
@@ -6,6 +5,7 @@
 #include <cstdint>
 #include "address.h"
 #include "cartridge.h"
+#include "interrupt.h"
 
 class MMU{
 public: 
@@ -15,6 +15,10 @@ public:
 
     void writeByte(const Address addr, const uint8_t byte);
     void writeWord(const Address addr, const uint16_t word);
+
+    void requestInterrupt(Interrupt interrupt);
+    void clearInterrupt(Interrupt interrupt);
+    uint8_t pendingInterrupts() const;
 
 private:
     Cartridge& cartridge;

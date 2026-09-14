@@ -237,16 +237,24 @@ void CPU::opcode_dec(const Address& addr){
 
 // DI
 void CPU::opcode_di(){
-    interruptsEnabled = false;
+    IME = false;
+    interruptEnableDelay = 0;
 }
 
 // EI
 void CPU::opcode_ei(){
-    interruptsEnabled = true;
+    interruptEnableDelay = 2;
 }
 
 // HALT
 void CPU::opcode_halt(){
+    const bool interruptPending = mmu.pendingInterrupts() != 0;
+    const bool imeWillEnableAfterHalt = interruptEnableDelay == 1;
+
+    if(!interruptsEnabled && !imeWillEnableAfterHalt && interruptPending){
+        haltbug = true;
+        return;
+    }
     halted = true;
 };
 
@@ -572,7 +580,8 @@ void CPU::opcode_ret(Condition cond){
 // RETI
 void CPU::opcode_reti(){
     opcode_ret();
-    opcode_ei();
+    IME = true;
+    interruptEnableDelay = 0;
 }
 
 // SBC

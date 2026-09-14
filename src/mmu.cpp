@@ -61,3 +61,16 @@ void MMU::writeWord(const Address addr, const uint16_t word){
     writeByte(addr, low);
     writeByte(Address(static_cast<uint16_t>(addr.value() + 1)), high);
 }
+
+void MMU::requestInterrupt(Interrupt interrupt){
+    io[interrupts::requestAddress - 0xFF00] |= interrupts::mask(interrupt);
+}
+
+void MMU::clearInterrupt(Interrupt interrupt){
+    io[interrupts::requestAddress - 0xFF00] &= static_cast<uint8_t>(~interrupts::mask(interrupt));
+}
+
+uint8_t MMU::pendingInterrupts() const{
+    const uint8_t interruptFlags = io[interrupts::requestAddress - 0xFF00];
+    return static_cast<uint8_t>(interruptFlags & interruptEnable & 0x1F);
+}

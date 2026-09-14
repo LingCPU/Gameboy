@@ -29,8 +29,10 @@ private:
     MMU& mmu;
     Clock clock;
 
-    bool interruptsEnabled = false;
+    bool IME = false;
+    uint8_t interruptEnableDelay = 0;
     bool halted = false;
+    bool haltBug = false;
     bool branchTaken = false;
 
     // 8-bit Registers:
@@ -58,6 +60,10 @@ private:
 
     uint8_t getByteFromPC();
     uint16_t getWordFromPC();
+
+    // Interrupt Handling
+    uint8_t serviceInterrupt(uint8_t pending);
+    void updateInterruptEnableDelay();
 
     // Flags
     bool flagZero() const;
