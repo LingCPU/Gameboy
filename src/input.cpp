@@ -1,10 +1,10 @@
 #include "input.h"
 
-bool Input::press(Button button){
+bool Input::buttonPressed(Button button){
     return setButton(button, true);
 }
 
-bool Input::release(Button button){
+bool Input::buttonReleased(Button button){
     return setButton(button, false);
 }
 
