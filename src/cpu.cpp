@@ -1,7 +1,6 @@
 #include "cpu.h"
 #include "bitwise.h"
 #include "opcodeCycles.h"
-#include <stdexcept>
 
 CPU::CPU(MMU& inMMU) : pc(0x0000), sp(0xFFFE), mmu(inMMU){ // Initialize PC to 0x0000 and SP to 0xFFFE
     // Initialize registers to 0
@@ -100,8 +99,8 @@ bool CPU::isCondition(Condition condition){
 
 uint8_t CPU::executeOpcode(const uint8_t opcode){
     branchTaken = false;
-    if(opcode != 0xCB) executeRegularOpcode(opcode);
-    else executeCBOpcode();
+    if(opcode != 0xCB) return executeRegularOpcode(opcode);
+    else return executeCBOpcode();
 }
 
 uint8_t CPU::executeRegularOpcode(const uint8_t opcode){
