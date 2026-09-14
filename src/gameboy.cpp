@@ -10,6 +10,7 @@ Gameboy::Gameboy(Cartridge inCartridge)
 
 void Gameboy::run(){
     while(true){
-        cpu.tick();
+        const uint8_t cycles = cpu.tick();
+        mmu.tick(cycles);
     }
 }

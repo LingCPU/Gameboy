@@ -27,7 +27,6 @@ public:
 
 private:
     MMU& mmu;
-    Clock clock;
 
     bool IME = false;
     uint8_t interruptEnableDelay = 0;

@@ -1,9 +1,15 @@
 #include "mmu.h"
 #include "boot.h"
 
+namespace{
+    constexpr uint16_t DIV  = 0xFF04;
+    constexpr uint16_t TIMA = 0xFF05;
+    constexpr uint16_t TMA  = 0xFF06;
+    constexpr uint16_t TAC  = 0xFF07;
+}
+
 MMU::MMU(Cartridge& inCartridge) 
 : cartridge(inCartridge){
-
 }
 
 uint8_t MMU::readByte(const Address addr) const{
@@ -73,4 +79,40 @@ void MMU::clearInterrupt(Interrupt interrupt){
 uint8_t MMU::pendingInterrupts() const{
     const uint8_t interruptFlags = io[interrupts::requestAddress - 0xFF00];
     return static_cast<uint8_t>(interruptFlags & interruptEnable & 0x1F);
+}
+
+void MMU::tick(uint8_t mCycles){
+    clock.addTime(mCycles);
+    if(clock.consumeTimerInterrupt()) requestInterrupt(Interrupt::Timer);
+}
+
+uint8_t MMU::readIO(uint16_t location) const{
+    switch(location){
+        case DIV:  return clock.readDIV();
+        case TIMA: return clock.readTIMA();
+        case TMA:  return clock.readTMA();
+        case TAC:  return clock.readTAC();
+        default:   return io[location - 0xFF00];
+    }
+}
+
+void MMU::writeIO(uint16_t location, uint8_t byte){
+    switch(location){
+        case DIV:
+            clock.writeDIV();
+            return;
+        case TIMA:
+            clock.writeTIMA(byte);
+            return;
+        case TMA:
+            clock.writeTMA(byte);
+            return;
+        case TAC:
+            clock.writeTAC(byte);
+            return;
+        default:
+            io[location - 0xFF00] = byte;
+            if(location == 0xFF50 && byte != 0) bootROMLoaded = false;
+            return;
+    }
 }
