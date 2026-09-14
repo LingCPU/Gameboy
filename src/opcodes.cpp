@@ -251,8 +251,8 @@ void CPU::opcode_halt(){
     const bool interruptPending = mmu.pendingInterrupts() != 0;
     const bool imeWillEnableAfterHalt = interruptEnableDelay == 1;
 
-    if(!interruptsEnabled && !imeWillEnableAfterHalt && interruptPending){
-        haltbug = true;
+    if(!IME && !imeWillEnableAfterHalt && interruptPending){
+        haltBug = true;
         return;
     }
     halted = true;

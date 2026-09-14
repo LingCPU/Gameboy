@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "bitwise.h"
 #include "opcodeCycles.h"
+#include <stdexcept>
 
 CPU::CPU(MMU& inMMU) : pc(0x0000), sp(0xFFFE), mmu(inMMU){ // Initialize PC to 0x0000 and SP to 0xFFFE
     // Initialize registers to 0
@@ -33,7 +34,7 @@ uint8_t CPU::serviceInterrupt(uint8_t pending){
     for(uint8_t bit = 0; bit < 5; ++bit){
         if((pending & static_cast<uint8_t>(1u << bit)) == 0) continue;
         Interrupt interrupt = static_cast<Interrupt>(bit);
-        interruptsEnabled = false;
+        IME = false;
         interruptEnableDelay = 0;
         halted = false;
 
