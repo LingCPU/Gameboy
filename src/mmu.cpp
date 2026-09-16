@@ -31,11 +31,11 @@ uint8_t MMU::readByte(const Address addr) const{
     uint16_t location = addr.value();
     if(bootROMLoaded && location <= 0x00FF) return bootDMG[location];
     if(location <= 0x7FFF) return cartridge.read(addr);
-    if(location <= 0x9FFF) return vram[location - 0x8000];
+    if(location <= 0x9FFF) return ppu.readVRAM(location - 0x8000);
     if(location <= 0xBFFF) return 0xFF; 
     if(location <= 0xDFFF) return wram[location - 0xC000];
     if(location <= 0xFDFF) return wram[location - 0xE000];
-    if(location <= 0xFE9F) return oam[location - 0xFE00];
+    if(location <= 0xFE9F) return ppu.readOAM(location - 0xFE00);
     if(location <= 0xFEFF) return 0xFF;
     if(location <= 0xFF7F) return readIO(location);
     if(location <= 0xFFFE) return hram[location - 0xFF80];
@@ -47,7 +47,7 @@ void MMU::writeByte(const Address addr, const uint8_t byte){
     uint16_t location = addr.value();
     if(location <= 0x7FFF) return;
     if(location <= 0x9FFF){
-        vram[location - 0x8000] = byte;
+        ppu.writeVRAM(location - 0x8000, byte);
         return;
     }
     if(location <= 0xBFFF) return;
@@ -60,7 +60,7 @@ void MMU::writeByte(const Address addr, const uint8_t byte){
         return;
     }
     if(location <= 0xFE9F){
-        oam[location - 0xFE00] = byte;
+        ppu.writeOAM(location - 0xFE00, byte);
         return;
     }
     if(location <= 0xFEFF) return;

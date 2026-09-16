@@ -41,9 +41,7 @@ private:
     void writeIO(uint16_t loc, uint8_t byte);
     void dmaTransfer(uint8_t sourceHighByte);
 
-    std::array<uint8_t, 0x2000> vram{};
     std::array<uint8_t, 0x2000> wram{};
-    std::array<uint8_t, 0x00A0> oam{};
     std::array<uint8_t, 0x0080> io{};
     std::array<uint8_t, 0x007F> hram{};
 
