@@ -1,7 +1,22 @@
 #include "ppu.h"
 #include <algorithm>
 
-void PPU:tick(uint8_t mCYcles){
+namespace{
+    constexpr uint16_t bgMapLowOffset = 0x1800;  // 0x9800 - 0x8000
+    constexpr uint16_t bgMapHighOffset = 0x1C00; // 0x9C00 - 0x8000
+    constexpr uint16_t signedTileBaseOffset = 0x1000; // 0x9000 - 0x8000
+    constexpr uint8_t bytesPerTile = 16;
+    constexpr uint8_t tilesPerMapRow = 32;
+    constexpr uint8_t maxSpritesPerLine = 10;
+    constexpr uint8_t spriteCount = 40;
+    constexpr uint8_t bytesPerSprite = 4;
+}
+
+PPU::PPU(){
+    frame.fill(0);
+}
+
+void PPU::tick(uint8_t mCycles){
     if(!lcdEnabled()) return;
 
     uint16_t remainingTCycles = static_cast<uint16_t>(mCycles) * 4;
@@ -20,6 +35,31 @@ void PPU:tick(uint8_t mCYcles){
     }
 }
 
+uint8_t PPU::readVRAM(uint16_t offset) const{
+    if(offset >= vram.size() || !cpuCanAccessVRAM()) return 0xFF;
+    return vram[offset];
+}
+
+void PPU::writeVRAM(uint16_t offset, uint8_t value){
+    if(offset >= vram.size() || !cpuCanAccessVRAM()) return;
+    vram[offset] = value;
+}
+
+uint8_t PPU::readOAM(uint16_t offset) const{
+    if(offset >= oam.size() || !cpuCanAccessOAM()) return 0xFF;
+    return oam[offset];
+}
+
+void PPU::writeOAM(uint16_t offset, uint8_t value){
+    if(offset >= oam.size() || !cpuCanAccessOAM()) return;
+    oam[offset] = value;
+}
+
+void PPU::writeOAMDMA(uint16_t offset, uint8_t value){
+    if(offset >= oam.size()) return;
+    oam[offset] = value;
+}
+
 uint8_t PPU::readLCDC() const{
     return lcdc;
 }
@@ -30,12 +70,44 @@ uint8_t PPU::readSTAT() const{
     return static_cast<uint8_t>(0x80 | statInterruptEnable | coincidence | modeBits);
 }
 
+uint8_t PPU::readSCY() const{
+    return scy;
+}
+
+uint8_t PPU::readSCX() const{
+    return scx;
+}
+
 uint8_t PPU::readLY() const{
     return ly;
 }
 
 uint8_t PPU::readLYC() const{
     return lyc;
+}
+
+uint8_t PPU::readDMA() const{
+    return dma;
+}
+
+uint8_t PPU::readBGP() const{
+    return bgp;
+}
+
+uint8_t PPU::readOBP0() const{
+    return obp0;
+}
+
+uint8_t PPU::readOBP1() const{
+    return obp1;
+}
+
+uint8_t PPU::readWY() const{
+    return wy;
+}
+
+uint8_t PPU::readWX() const{
+    return wx;
 }
 
 void PPU::writeLCDC(uint8_t val){
@@ -49,6 +121,8 @@ void PPU::writeLCDC(uint8_t val){
         mode = PPUMode::HBlank;
         modeTCycleCounter = 0;
         statInterruptLine = false;
+        frameReady = false;
+        frame.fill(0);
         return;
     }
 
@@ -68,11 +142,52 @@ void PPU::writeSTAT(uint8_t val){
     updateSTATInterruptLine();
 }
 
+void PPU::writeSCY(uint8_t value){
+    scy = value;
+}
+
+void PPU::writeSCX(uint8_t value){
+    scx = value;
+}
+
 void PPU::writeLYC(uint8_t val){
     lyc = val;
     updateSTATInterruptLine();
 }
 
+void PPU::writeDMA(uint8_t value){
+    dma = value;
+}
+
+void PPU::writeBGP(uint8_t value){
+    bgp = value;
+}
+
+void PPU::writeOBP0(uint8_t value){
+    obp0 = value;
+}
+
+void PPU::writeOBP1(uint8_t value){
+    obp1 = value;
+}
+
+void PPU::writeWY(uint8_t value){
+    wy = value;
+}
+
+void PPU::writeWX(uint8_t value){
+    wx = value;
+}
+
+bool PPU::consumeFrameReady(){
+    const bool ready = frameReady;
+    frameReady = false;
+    return ready;
+}
+
+const PPU::FrameBuffer& PPU::frameBuffer() const{
+    return frame;
+}
 bool PPU::consumeVBlankInterrupt(){
     const bool requested = vBlankInterruptRequested;
     vBlankInterruptRequested = false;
@@ -87,6 +202,42 @@ bool PPU::consumeSTATInterrupt(){
 
 bool PPU::lcdEnabled() const{
     return (lcdc & 0x80) != 0;
+}
+
+bool PPU::backgroundWindowEnabled() const{
+    return (lcdc & 0x01) != 0;
+}
+
+bool PPU::spritesEnabled() const{
+    return (lcdc & 0x02) != 0;
+}
+
+bool PPU::tallSpritesEnabled() const{
+    return (lcdc & 0x04) != 0;
+}
+
+bool PPU::backgroundTileMapHigh() const{
+    return (lcdc & 0x08) != 0;
+}
+
+bool PPU::unsignedTileData() const{
+    return (lcdc & 0x10) != 0;
+}
+
+bool PPU::windowEnabled() const{
+    return (lcdc & 0x20) != 0;
+}
+
+bool PPU::windowTileMapHigh() const{
+    return (lcdc & 0x40) != 0;
+}
+
+bool PPU::cpuCanAccessVRAM() const{
+    return !lcdEnabled() || mode != PPUMode::PixelTransfer;
+}
+
+bool PPU::cpuCanAccessOAM() const{
+    return !lcdEnabled() || (mode != PPUMode::OAMScan && mode != PPUMode::PixelTransfer);
 }
 
 uint16_t PPU::currentModeDuration() const{
@@ -105,6 +256,7 @@ void PPU::advanceMode(){
             mode = PPUMode::PixelTransfer;
             break;
         case PPUMode::PixelTransfer:
+            renderScanline();
             mode = PPUMode::HBlank;
             break;
 
@@ -138,6 +290,164 @@ void PPU::updateSTATInterruptLine(){
     }
 
     if(newLine && !statInterruptLine) statInterruptRequested = true;
-    
     statInterruptLine = newLine;
+}
+
+void PPU::renderScanline(){
+    if(!lcdEnabled() || ly >= screenHeight) return;
+
+    std::array<uint8_t, screenWidth> backgroundColors{};
+    renderBackgroundAndWindow(backgroundColors);
+    renderSprites(backgroundColors);
+}
+
+void PPU::renderBackgroundAndWindow(std::array<uint8_t, screenWidth>& backgroundColors){
+    const std::size_t lineOffset = static_cast<std::size_t>(ly) * screenWidth;
+
+    if(!backgroundWindowEnabled()){
+        for(std::size_t x = 0; x < screenWidth; ++x){
+            backgroundColors[x] = 0;
+            frame[lineOffset + x] = 0;
+        }
+        return;
+    }
+
+    const uint16_t bgMapOffset = backgroundTileMapHigh() ? bgMapHighOffset : bgMapLowOffset;
+
+    for(std::size_t x = 0; x < screenWidth; ++x){
+        const uint8_t bgX = static_cast<uint8_t>(x + scx);
+        const uint8_t bgY = static_cast<uint8_t>(ly + scy);
+        const uint8_t tileX = static_cast<uint8_t>(bgX / 8);
+        const uint8_t tileY = static_cast<uint8_t>(bgY / 8);
+        const uint16_t tileMapIndex = static_cast<uint16_t>(tileY * tilesPerMapRow + tileX);
+        const uint8_t tileId = vram[bgMapOffset + tileMapIndex];
+        const uint8_t colorId = tilePixel(tileId, static_cast<uint8_t>(bgX % 8),
+                                          static_cast<uint8_t>(bgY % 8), unsignedTileData());
+
+        backgroundColors[x] = colorId;
+        frame[lineOffset + x] = paletteShade(bgp, colorId);
+    }
+
+    if(!windowEnabled() || ly < wy) return;
+
+    const int windowLeft = static_cast<int>(wx) - 7;
+    if(windowLeft >= static_cast<int>(screenWidth)) return;
+
+    const uint16_t windowMapOffset = windowTileMapHigh() ? bgMapHighOffset : bgMapLowOffset;
+    const uint8_t windowY = static_cast<uint8_t>(ly - wy);
+
+    for(int screenX = std::max(windowLeft, 0); screenX < static_cast<int>(screenWidth); ++screenX){
+        const uint8_t windowX = static_cast<uint8_t>(screenX - windowLeft);
+        const uint8_t tileX = static_cast<uint8_t>(windowX / 8);
+        const uint8_t tileY = static_cast<uint8_t>(windowY / 8);
+        const uint16_t tileMapIndex = static_cast<uint16_t>(tileY * tilesPerMapRow + tileX);
+        const uint8_t tileId = vram[windowMapOffset + tileMapIndex];
+        const uint8_t colorId = tilePixel(tileId, static_cast<uint8_t>(windowX % 8),
+                                          static_cast<uint8_t>(windowY % 8), unsignedTileData());
+
+        const std::size_t x = static_cast<std::size_t>(screenX);
+        backgroundColors[x] = colorId;
+        frame[lineOffset + x] = paletteShade(bgp, colorId);
+    }
+}
+
+void PPU::renderSprites(const std::array<uint8_t, screenWidth>& backgroundColors){
+    if(!spritesEnabled()) return;
+
+    struct SpriteOnLine{
+        uint8_t index;
+        uint8_t x;
+    };
+
+    std::array<SpriteOnLine, maxSpritesPerLine> sprites{};
+    std::size_t spriteTotal = 0;
+    const int spriteHeight = tallSpritesEnabled() ? 16 : 8;
+
+    // The DMG considers only the first 10 OAM entries that intersect a scanline.
+    for(uint8_t spriteIndex = 0; spriteIndex < spriteCount && spriteTotal < maxSpritesPerLine; ++spriteIndex){
+        const std::size_t base = static_cast<std::size_t>(spriteIndex) * bytesPerSprite;
+        const int top = static_cast<int>(oam[base]) - 16;
+        if(static_cast<int>(ly) < top || static_cast<int>(ly) >= top + spriteHeight) continue;
+
+        sprites[spriteTotal++] = {spriteIndex, oam[base + 1]};
+    }
+
+    // Smaller X coordinates have higher priority. Equal-X sprites are
+    // resolved by lower OAM index. Draw low priority first so high priority can
+    // overwrite it last.
+    std::sort(sprites.begin(), sprites.begin() + static_cast<std::ptrdiff_t>(spriteTotal),
+              [](const SpriteOnLine& left, const SpriteOnLine& right){
+                  if(left.x != right.x) return left.x < right.x;
+                  return left.index < right.index;
+              });
+
+    const std::size_t lineOffset = static_cast<std::size_t>(ly) * screenWidth;
+
+    for(std::size_t sortedIndex = spriteTotal; sortedIndex > 0; --sortedIndex){
+        const uint8_t spriteIndex = sprites[sortedIndex - 1].index;
+        const std::size_t base = static_cast<std::size_t>(spriteIndex) * bytesPerSprite;
+
+        const int top = static_cast<int>(oam[base]) - 16;
+        const int left = static_cast<int>(oam[base + 1]) - 8;
+        uint8_t tileId = oam[base + 2];
+        const uint8_t attributes = oam[base + 3];
+
+        const bool useOBP1 = (attributes & 0x10) != 0;
+        const bool flipX = (attributes & 0x20) != 0;
+        const bool flipY = (attributes & 0x40) != 0;
+        const bool behindBackground = (attributes & 0x80) != 0;
+
+        int spriteY = static_cast<int>(ly) - top;
+        if(flipY) spriteY = spriteHeight - 1 - spriteY;
+
+        if(spriteHeight == 16){
+            tileId = static_cast<uint8_t>(tileId & 0xFE);
+            if(spriteY >= 8){
+                ++tileId;
+                spriteY -= 8;
+            }
+        }
+
+        for(int spriteX = 0; spriteX < 8; ++spriteX){
+            const int screenX = left + spriteX;
+            if(screenX < 0 || screenX >= static_cast<int>(screenWidth)) continue;
+
+            const uint8_t tileX = static_cast<uint8_t>(flipX ? 7 - spriteX : spriteX);
+            const uint8_t colorId = tilePixel(tileId, tileX, static_cast<uint8_t>(spriteY), true);
+
+            // OBJ color 0 is transparent regardless of the selected object palette.
+            if(colorId == 0) continue;
+
+            const std::size_t x = static_cast<std::size_t>(screenX);
+            if(behindBackground && backgroundColors[x] != 0) continue;
+
+            frame[lineOffset + x] = paletteShade(useOBP1 ? obp1 : obp0, colorId);
+        }
+    }
+}
+
+uint8_t PPU::tilePixel(uint8_t tileId, uint8_t pixelX, uint8_t pixelY, bool useUnsignedTileIds) const{
+    uint16_t tileOffset = 0;
+
+    if(useUnsignedTileIds) tileOffset = static_cast<uint16_t>(tileId) * bytesPerTile;
+    else{
+        // Signed tile IDs are centered on 0x9000. Relative to VRAM's 0x8000
+        // base this is offset 0x1000, then -128..127 tiles around it.
+        const int16_t signedId = static_cast<int8_t>(tileId);
+        tileOffset = static_cast<uint16_t>(signedTileBaseOffset + signedId * bytesPerTile);
+    }
+
+    const uint16_t rowOffset = static_cast<uint16_t>(pixelY * 2);
+    const uint8_t lowByte = vram[tileOffset + rowOffset];
+    const uint8_t highByte = vram[tileOffset + rowOffset + 1];
+    const uint8_t bit = static_cast<uint8_t>(7 - pixelX);
+
+    const uint8_t lowBit = static_cast<uint8_t>((lowByte >> bit) & 0x01);
+    const uint8_t highBit = static_cast<uint8_t>((highByte >> bit) & 0x01);
+    return static_cast<uint8_t>((highBit << 1) | lowBit);
+}
+
+uint8_t PPU::paletteShade(uint8_t palette, uint8_t colorId){
+    const uint8_t shift = static_cast<uint8_t>(colorId * 2);
+    return static_cast<uint8_t>((palette >> shift) & 0x03);
 }

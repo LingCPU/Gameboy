@@ -22,3 +22,11 @@ void Gameboy::buttonPressed(Button button){
 void Gameboy::buttonReleased(Button button){
     mmu.buttonReleased(button);
 }
+
+const PPU::FrameBuffer& Gameboy::frameBuffer() const{
+    return mmu.frameBuffer();
+}
+
+bool Gameboy::consumeFrameReady(){
+    return mmu.consumeFrameReady();
+}

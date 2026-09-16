@@ -28,6 +28,9 @@ public:
 
     void tick(uint8_t mCycles);
 
+    const PPU::FrameBuffer& frameBuffer() const;
+    bool consumeFrameReady();
+
 private:
     Cartridge& cartridge;
     Clock clock;

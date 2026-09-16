@@ -12,6 +12,9 @@ public:
     void buttonPressed(Button button);
     void buttonReleased(Button button);
 
+    const PPU::FrameBuffer& frameBuffer() const;
+    bool consumeFrameReady();
+
 private:
     Cartridge cartridge;
     MMU mmu;
