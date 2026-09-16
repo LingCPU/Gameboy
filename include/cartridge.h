@@ -22,11 +22,21 @@ namespace cartridgeHeader{
     inline constexpr std::size_t globalChecksum = 0x14E;
 }
 
+enum class CartridgeType{
+    ROMOnly,
+    MBC1,
+    MBC2,
+    MBC3,
+    MBC5
+};
+
 class Cartridge{
 public:
-    Cartridge(std::string filename);
+    Cartridge(const std::string filename);
+    Cartridge(std::vector<uint8_t> romData);
 
     uint8_t read(const Address address) const;
+    void write(Address address, uint8_t value);
 
     // Header info from Cartridge
     std::string gameTitle() const;
