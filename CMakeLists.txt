@@ -21,6 +21,7 @@ add_executable(emulator
     src/opcodes.cpp
     src/ppu.cpp
     src/register.cpp
+    src/serial.cpp
 )
 
 target_include_directories(emulator PRIVATE include)
