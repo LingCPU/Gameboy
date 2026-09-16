@@ -40,7 +40,7 @@ void Serial::writeCtrl(uint8_t byte){
 void Serial::tick(uint8_t mCycles){
     if(!internalTransferActive) return;
     transferMCycleCounter = static_cast<uint16_t>(transferMCycleCounter + mCycles);
-    if(transferMCycleCounter >= internalTransferMCycles) completeTranfser();
+    if(transferMCycleCounter >= internalTransferMCycles) completeTransfer();
 }
 
 bool Serial::consumeInterrupt(){
