@@ -26,8 +26,8 @@ add_executable(emulator
 
 target_include_directories(emulator PRIVATE include)
 
-target_compile_options(emulator PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-)
+if(MSVC)
+    target_compile_options(emulator PRIVATE /W4 /permissive-)
+else()
+    target_compile_options(emulator PRIVATE -Wall -Wextra -Wpedantic)
+endif()
