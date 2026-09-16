@@ -4,21 +4,23 @@
 #include <vector>
 #include "address.h"
 
-const int entryPoint = 0x100;
-const int logo = 0x104;
-const int title = 0x134;
-const int manufacturerCode = 0x13F;
-const int cgbFlag = 0x143;
-const int newLicenseCode = 0x144;
-const int sgbFlag = 0x146;
-const int cartridgeType = 0x147;
-const int romSize = 0x148;
-const int ramSize = 0x149;
-const int destinationCode = 0x14A;
-const int oldLicenseCode = 0x14B;
-const int versionNumber = 0x14C;
-const int headerChecksum = 0x14D;
-const int globalChecksum = 0x14E;
+namespace cartridgeHeader{
+    inline constexpr std::size_t entryPoint = 0x100;
+    inline constexpr std::size_t logo = 0x104;
+    inline constexpr std::size_t title = 0x134;
+    inline constexpr std::size_t manufacturerCode = 0x13F;
+    inline constexpr std::size_t cgbFlag = 0x143;
+    inline constexpr std::size_t newLicenseCode = 0x144;
+    inline constexpr std::size_t sgbFlag = 0x146;
+    inline constexpr std::size_t cartridgeType = 0x147;
+    inline constexpr std::size_t romSize = 0x148;
+    inline constexpr std::size_t ramSize = 0x149;
+    inline constexpr std::size_t destinationCode = 0x14A;
+    inline constexpr std::size_t oldLicenseCode = 0x14B;
+    inline constexpr std::size_t versionNumber = 0x14C;
+    inline constexpr std::size_t headerChecksum = 0x14D;
+    inline constexpr std::size_t globalChecksum = 0x14E;
+}
 
 class Cartridge{
 public:
