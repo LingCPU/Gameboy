@@ -47,12 +47,18 @@ uint8_t MMU::readByte(const Address addr) const{
 
 void MMU::writeByte(const Address addr, const uint8_t byte){
     uint16_t location = addr.value();
-    if(location <= 0x7FFF) return;
+    if(location <= 0x7FFF){
+        cartridge.write(addr, byte);
+        return;
+    }
     if(location <= 0x9FFF){
         ppu.writeVRAM(location - 0x8000, byte);
         return;
     }
-    if(location <= 0xBFFF) return;
+    if(location <= 0xBFFF){
+        cartridge.write(addr, byte);
+        return;
+    }
     if(location <= 0xDFFF){
         wram[location - 0xC000] = byte;
         return;
