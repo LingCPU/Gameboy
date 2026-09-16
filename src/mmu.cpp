@@ -129,7 +129,7 @@ uint8_t MMU::readIO(uint16_t location) const{
     switch(location){
         case JOYP: return input.read();
         case SB:   return serial.readData();
-        case SC:   return serial.readControl();
+        case SC:   return serial.readCtrl();
 
         case DIV:  return clock.readDIV();
         case TIMA: return clock.readTIMA();
@@ -162,7 +162,7 @@ void MMU::writeIO(uint16_t location, uint8_t byte){
             serial.writeData(byte);
             return;
         case SC:
-            serial.writeControl(byte);
+            serial.writeCtrl(byte);
             return;
 
         case DIV:
