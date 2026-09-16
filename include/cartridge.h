@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 #include "address.h"
@@ -30,9 +33,11 @@ enum class CartridgeType{
     MBC5
 };
 
+class MemoryBankController;
+
 class Cartridge{
 public:
-    Cartridge(const std::string filename);
+    Cartridge(const std::string& filename);
     Cartridge(std::vector<uint8_t> romData);
 
     uint8_t read(const Address address) const;
@@ -40,8 +45,23 @@ public:
 
     // Header info from Cartridge
     std::string gameTitle() const;
-    std::string gameDesignation() const;
+    CartridgeType type() const;
+    uint8_t typeCode() const;
+    uint8_t romSizeCode() const;
+    uint8_t ramSizeCode() const;
+    std::size_t romSizeBytes() const;
+    std::size_t ramSizeBytes() const;
+
+    const std::vector<uint8_t>& ramData() const;
 
 private:
-    std::vector<char> data;
+    void initialize(std::vector<uint8_t> romData);
+
+    std::shared_ptr<MemoryBankController> controller;
+    std::string titleText;
+    CartridgeType cartridgeType = CartridgeType::ROMOnly;
+    uint8_t cartridgeTypeCode = 0;
+    uint8_t headerROMSizeCode = 0;
+    uint8_t headerRAMSizeCode = 0;
+    std::size_t loadedROMSize = 0;
 };
