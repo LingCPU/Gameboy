@@ -9,6 +9,7 @@
 #include "clock.h"
 #include "input.h"
 #include "ppu.h"
+#include "serial.h"
 
 class MMU{
 public: 
@@ -36,6 +37,7 @@ private:
     Clock clock;
     Input input;
     PPU ppu;
+    Serial serial;
 
     uint8_t readIO(uint16_t loc) const;
     void writeIO(uint16_t loc, uint8_t byte);

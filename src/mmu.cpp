@@ -3,6 +3,8 @@
 
 namespace{
     constexpr uint16_t JOYP = 0xFF00;
+    constexpr uint16_t SB   = 0xFF01;
+    constexpr uint16_t SC   = 0xFF02;
 
     constexpr uint16_t DIV  = 0xFF04;
     constexpr uint16_t TIMA = 0xFF05;
@@ -107,6 +109,9 @@ void MMU::tick(uint8_t mCycles){
     clock.addTime(mCycles);
     if(clock.consumeTimerInterrupt()) requestInterrupt(Interrupt::Timer);
 
+    serial.tick(mCycles);
+    if(serial.consumeInterrupt()) requestInterrupt(Interrupt::Serial);
+
     ppu.tick(mCycles);
     if(ppu.consumeVBlankInterrupt()) requestInterrupt(Interrupt::VBlank);
     if(ppu.consumeSTATInterrupt()) requestInterrupt(Interrupt::LCDStat);
@@ -123,6 +128,8 @@ bool MMU::consumeFrameReady(){
 uint8_t MMU::readIO(uint16_t location) const{
     switch(location){
         case JOYP: return input.read();
+        case SB:   return serial.readData();
+        case SC:   return serial.readControl();
 
         case DIV:  return clock.readDIV();
         case TIMA: return clock.readTIMA();
@@ -150,6 +157,12 @@ void MMU::writeIO(uint16_t location, uint8_t byte){
     switch(location){
         case JOYP:
             if(input.write(byte)) requestInterrupt(Interrupt::Joypad);
+            return;
+        case SB:
+            serial.writeData(byte);
+            return;
+        case SC:
+            serial.writeControl(byte);
             return;
 
         case DIV:
