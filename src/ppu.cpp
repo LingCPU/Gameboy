@@ -40,9 +40,9 @@ uint8_t PPU::readVRAM(uint16_t offset) const{
     return vram[offset];
 }
 
-void PPU::writeVRAM(uint16_t offset, uint8_t value){
+void PPU::writeVRAM(uint16_t offset, uint8_t val){
     if(offset >= vram.size() || !cpuCanAccessVRAM()) return;
-    vram[offset] = value;
+    vram[offset] = val;
 }
 
 uint8_t PPU::readOAM(uint16_t offset) const{
@@ -50,14 +50,14 @@ uint8_t PPU::readOAM(uint16_t offset) const{
     return oam[offset];
 }
 
-void PPU::writeOAM(uint16_t offset, uint8_t value){
+void PPU::writeOAM(uint16_t offset, uint8_t val){
     if(offset >= oam.size() || !cpuCanAccessOAM()) return;
-    oam[offset] = value;
+    oam[offset] = val;
 }
 
-void PPU::writeOAMDMA(uint16_t offset, uint8_t value){
+void PPU::writeOAMDMA(uint16_t offset, uint8_t val){
     if(offset >= oam.size()) return;
-    oam[offset] = value;
+    oam[offset] = val;
 }
 
 uint8_t PPU::readLCDC() const{
@@ -142,12 +142,12 @@ void PPU::writeSTAT(uint8_t val){
     updateSTATInterruptLine();
 }
 
-void PPU::writeSCY(uint8_t value){
-    scy = value;
+void PPU::writeSCY(uint8_t val){
+    scy = val;
 }
 
-void PPU::writeSCX(uint8_t value){
-    scx = value;
+void PPU::writeSCX(uint8_t val){
+    scx = val;
 }
 
 void PPU::writeLYC(uint8_t val){
@@ -155,28 +155,28 @@ void PPU::writeLYC(uint8_t val){
     updateSTATInterruptLine();
 }
 
-void PPU::writeDMA(uint8_t value){
-    dma = value;
+void PPU::writeDMA(uint8_t val){
+    dma = val;
 }
 
-void PPU::writeBGP(uint8_t value){
-    bgp = value;
+void PPU::writeBGP(uint8_t val){
+    bgp = val;
 }
 
-void PPU::writeOBP0(uint8_t value){
-    obp0 = value;
+void PPU::writeOBP0(uint8_t val){
+    obp0 = val;
 }
 
-void PPU::writeOBP1(uint8_t value){
-    obp1 = value;
+void PPU::writeOBP1(uint8_t val){
+    obp1 = val;
 }
 
-void PPU::writeWY(uint8_t value){
-    wy = value;
+void PPU::writeWY(uint8_t val){
+    wy = val;
 }
 
-void PPU::writeWX(uint8_t value){
-    wx = value;
+void PPU::writeWX(uint8_t val){
+    wx = val;
 }
 
 bool PPU::consumeFrameReady(){
@@ -201,35 +201,35 @@ bool PPU::consumeSTATInterrupt(){
 }
 
 bool PPU::lcdEnabled() const{
-    return (lcdc & 0x80) != 0;
+    return (lcdc.value() & 0x80) != 0;
 }
 
 bool PPU::backgroundWindowEnabled() const{
-    return (lcdc & 0x01) != 0;
+    return (lcdc.value() & 0x01) != 0;
 }
 
 bool PPU::spritesEnabled() const{
-    return (lcdc & 0x02) != 0;
+    return (lcdc.value() & 0x02) != 0;
 }
 
 bool PPU::tallSpritesEnabled() const{
-    return (lcdc & 0x04) != 0;
+    return (lcdc.value() & 0x04) != 0;
 }
 
 bool PPU::backgroundTileMapHigh() const{
-    return (lcdc & 0x08) != 0;
+    return (lcdc.value() & 0x08) != 0;
 }
 
 bool PPU::unsignedTileData() const{
-    return (lcdc & 0x10) != 0;
+    return (lcdc.value() & 0x10) != 0;
 }
 
 bool PPU::windowEnabled() const{
-    return (lcdc & 0x20) != 0;
+    return (lcdc.value() & 0x20) != 0;
 }
 
 bool PPU::windowTileMapHigh() const{
-    return (lcdc & 0x40) != 0;
+    return (lcdc.value() & 0x40) != 0;
 }
 
 bool PPU::cpuCanAccessVRAM() const{
@@ -315,8 +315,8 @@ void PPU::renderBackgroundAndWindow(std::array<uint8_t, screenWidth>& background
     const uint16_t bgMapOffset = backgroundTileMapHigh() ? bgMapHighOffset : bgMapLowOffset;
 
     for(std::size_t x = 0; x < screenWidth; ++x){
-        const uint8_t bgX = static_cast<uint8_t>(x + scx);
-        const uint8_t bgY = static_cast<uint8_t>(ly + scy);
+        const uint8_t bgX = static_cast<uint8_t>(x + scx.value());
+        const uint8_t bgY = static_cast<uint8_t>(ly.value() + scy.value());
         const uint8_t tileX = static_cast<uint8_t>(bgX / 8);
         const uint8_t tileY = static_cast<uint8_t>(bgY / 8);
         const uint16_t tileMapIndex = static_cast<uint16_t>(tileY * tilesPerMapRow + tileX);
@@ -330,11 +330,11 @@ void PPU::renderBackgroundAndWindow(std::array<uint8_t, screenWidth>& background
 
     if(!windowEnabled() || ly < wy) return;
 
-    const int windowLeft = static_cast<int>(wx) - 7;
+    const int windowLeft = static_cast<int>(wx.value()) - 7;
     if(windowLeft >= static_cast<int>(screenWidth)) return;
 
     const uint16_t windowMapOffset = windowTileMapHigh() ? bgMapHighOffset : bgMapLowOffset;
-    const uint8_t windowY = static_cast<uint8_t>(ly - wy);
+    const uint8_t windowY = static_cast<uint8_t>(ly.value() - wy.value());
 
     for(int screenX = std::max(windowLeft, 0); screenX < static_cast<int>(screenWidth); ++screenX){
         const uint8_t windowX = static_cast<uint8_t>(screenX - windowLeft);
@@ -367,7 +367,7 @@ void PPU::renderSprites(const std::array<uint8_t, screenWidth>& backgroundColors
     for(uint8_t spriteIndex = 0; spriteIndex < spriteCount && spriteTotal < maxSpritesPerLine; ++spriteIndex){
         const std::size_t base = static_cast<std::size_t>(spriteIndex) * bytesPerSprite;
         const int top = static_cast<int>(oam[base]) - 16;
-        if(static_cast<int>(ly) < top || static_cast<int>(ly) >= top + spriteHeight) continue;
+        if(static_cast<int>(ly.value()) < top || static_cast<int>(ly.value()) >= top + spriteHeight) continue;
 
         sprites[spriteTotal++] = {spriteIndex, oam[base + 1]};
     }
@@ -421,7 +421,7 @@ void PPU::renderSprites(const std::array<uint8_t, screenWidth>& backgroundColors
             const std::size_t x = static_cast<std::size_t>(screenX);
             if(behindBackground && backgroundColors[x] != 0) continue;
 
-            frame[lineOffset + x] = paletteShade(useOBP1 ? obp1 : obp0, colorId);
+            frame[lineOffset + x] = paletteShade(useOBP1 ? obp1.value() : obp0.value(), colorId);
         }
     }
 }

@@ -2,6 +2,7 @@
 #define PPU_H
 
 #include <cstdint>
+#include "register.h"
 
 enum class PPUMode : uint8_t{
     HBlank        = 0,
@@ -21,12 +22,12 @@ public:
     void tick(uint8_t mCycles); // M-Cycles to T-Cycles
 
     uint8_t readVRAM(uint16_t offset) const;
-    void writeVRAM(uint16_t offset, uint8_t value);
+    void writeVRAM(uint16_t offset, uint8_t val);
 
     uint8_t readOAM(uint16_t offset) const;
-    void writeOAM(uint16_t offset, uint8_t value);
+    void writeOAM(uint16_t offset, uint8_t val);
 
-    void writeOAMDMA(uint16_t offset, uint8_t value);
+    void writeOAMDMA(uint16_t offset, uint8_t val);
 
     uint8_t readLCDC() const;
     uint8_t readSTAT() const;
@@ -43,15 +44,15 @@ public:
 
     void writeLCDC(uint8_t val);
     void writeSTAT(uint8_t val);
-    void writeSCY(uint8_t value);
-    void writeSCX(uint8_t value);
+    void writeSCY(uint8_t val);
+    void writeSCX(uint8_t val);
     void writeLYC(uint8_t val);
-    void writeDMA(uint8_t value);
-    void writeBGP(uint8_t value);
-    void writeOBP0(uint8_t value);
-    void writeOBP1(uint8_t value);
-    void writeWY(uint8_t value);
-    void writeWX(uint8_t value);
+    void writeDMA(uint8_t val);
+    void writeBGP(uint8_t val);
+    void writeOBP0(uint8_t val);
+    void writeOBP1(uint8_t val);
+    void writeWY(uint8_t val);
+    void writeWX(uint8_t val);
 
     const FrameBuffer& frameBuffer() const;
     bool consumeFrameReady();
@@ -71,18 +72,19 @@ private:
     std::array<uint8_t, oamSize> oam{};
     FrameBuffer frame{};
 
-    uint8_t lcdc = 0;
+    Register lcdc = 0;
+    Register scy = 0;
+    Register scx = 0;
+    Register ly = 0;
+    Register lyc = 0;
+    Register dma = 0;
+    Register bgp = 0;
+    Register obp0 = 0;
+    Register obp1 = 0;
+    Register wy = 0;
+    Register wx = 0;
+
     uint8_t statInterruptEnable = 0;
-    uint8_t scy = 0;
-    uint8_t scx = 0;
-    uint8_t ly = 0;
-    uint8_t lyc = 0;
-    uint8_t dma = 0;
-    uint8_t bgp = 0;
-    uint8_t obp0 = 0;
-    uint8_t obp1 = 0;
-    uint8_t wy = 0;
-    uint8_t wx = 0;
 
     PPUMode mode = PPUMode::HBlank;
     uint16_t modeTCycleCounter = 0;
