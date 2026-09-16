@@ -39,6 +39,7 @@ private:
 
     uint8_t readIO(uint16_t loc) const;
     void writeIO(uint16_t loc, uint8_t byte);
+    void dmaTransfer(uint8_t sourceHighByte);
 
     std::array<uint8_t, 0x2000> vram{};
     std::array<uint8_t, 0x2000> wram{};
