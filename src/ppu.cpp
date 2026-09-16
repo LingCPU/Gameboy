@@ -61,63 +61,63 @@ void PPU::writeOAMDMA(uint16_t offset, uint8_t val){
 }
 
 uint8_t PPU::readLCDC() const{
-    return lcdc;
+    return lcdc.value();
 }
 
 uint8_t PPU::readSTAT() const{
-    const uint16_t coincidence = (ly == lyc) ? 0x04 : 0x00;
+    const uint16_t coincidence = (ly.value() == lyc.value()) ? 0x04 : 0x00;
     const uint16_t modeBits = static_cast<uint8_t>(mode);
     return static_cast<uint8_t>(0x80 | statInterruptEnable | coincidence | modeBits);
 }
 
 uint8_t PPU::readSCY() const{
-    return scy;
+    return scy.value();
 }
 
 uint8_t PPU::readSCX() const{
-    return scx;
+    return scx.value();
 }
 
 uint8_t PPU::readLY() const{
-    return ly;
+    return ly.value();
 }
 
 uint8_t PPU::readLYC() const{
-    return lyc;
+    return lyc.value();
 }
 
 uint8_t PPU::readDMA() const{
-    return dma;
+    return dma.value();
 }
 
 uint8_t PPU::readBGP() const{
-    return bgp;
+    return bgp.value();
 }
 
 uint8_t PPU::readOBP0() const{
-    return obp0;
+    return obp0.value();
 }
 
 uint8_t PPU::readOBP1() const{
-    return obp1;
+    return obp1.value();
 }
 
 uint8_t PPU::readWY() const{
-    return wy;
+    return wy.value();
 }
 
 uint8_t PPU::readWX() const{
-    return wx;
+    return wx.value();
 }
 
 void PPU::writeLCDC(uint8_t val){
     const bool wasEnabled = lcdEnabled();
-    lcdc = val;
+    lcdc.set(val);
     const bool isEnabled = lcdEnabled();
 
     if(wasEnabled && !isEnabled){
         // turning off lcd resets ly and ppu in mode 0, while disabled tick does not advance ppu
-        ly = 0;
+        ly.set(0);
         mode = PPUMode::HBlank;
         modeTCycleCounter = 0;
         statInterruptLine = false;
@@ -128,7 +128,7 @@ void PPU::writeLCDC(uint8_t val){
 
     if(!wasEnabled && isEnabled){
         // lcd begins visible frame timing sequence with OAM scan on line 0
-        ly = 0;
+        ly.set(0);
         mode = PPUMode::OAMScan;
         modeTCycleCounter = 0;
         statInterruptLine = false;
@@ -143,40 +143,40 @@ void PPU::writeSTAT(uint8_t val){
 }
 
 void PPU::writeSCY(uint8_t val){
-    scy = val;
+    scy.set(val);
 }
 
 void PPU::writeSCX(uint8_t val){
-    scx = val;
+    scx.set(val);
 }
 
 void PPU::writeLYC(uint8_t val){
-    lyc = val;
+    lyc.set(val);
     updateSTATInterruptLine();
 }
 
 void PPU::writeDMA(uint8_t val){
-    dma = val;
+    dma.set(val);
 }
 
 void PPU::writeBGP(uint8_t val){
-    bgp = val;
+    bgp.set(val);
 }
 
 void PPU::writeOBP0(uint8_t val){
-    obp0 = val;
+    obp0.set(val);
 }
 
 void PPU::writeOBP1(uint8_t val){
-    obp1 = val;
+    obp1.set(val);
 }
 
 void PPU::writeWY(uint8_t val){
-    wy = val;
+    wy.set(val);
 }
 
 void PPU::writeWX(uint8_t val){
-    wx = val;
+    wx.set(val);
 }
 
 bool PPU::consumeFrameReady(){
@@ -255,23 +255,26 @@ void PPU::advanceMode(){
         case PPUMode::OAMScan:
             mode = PPUMode::PixelTransfer;
             break;
+
         case PPUMode::PixelTransfer:
             renderScanline();
             mode = PPUMode::HBlank;
             break;
 
         case PPUMode::HBlank:
-            ++ly;
-            if(ly == 114){
+            ly.increment();
+            if(ly.value() == screenHeight){
                 mode = PPUMode::VBlank;
                 vBlankInterruptRequested = true;
+                frameReady = true;
             } else mode = PPUMode::OAMScan;
             break;
+
         case PPUMode::VBlank:
-            if(ly == 153){
-                ly = 0;
+            if(ly.value() == 153){
+                ly.set(0);
                 mode = PPUMode::OAMScan;
-            } else ++ly;
+            } else ly.increment();
             break;
     }
     updateSTATInterruptLine();
@@ -281,7 +284,7 @@ void PPU::updateSTATInterruptLine(){
     bool newLine = false;
 
     if(lcdEnabled()){
-        const bool coincidenceSource = (statInterruptEnable & 0x40) != 0 && ly == lyc;
+        const bool coincidenceSource = (statInterruptEnable & 0x40) != 0 && ly.value() == lyc.value();
         const bool oamSource = (statInterruptEnable & 0x20) != 0 && mode == PPUMode::OAMScan;
         const bool vBlankSource = (statInterruptEnable & 0x10) != 0 && mode == PPUMode::VBlank;
         const bool hBlankSource = (statInterruptEnable & 0x08) != 0 && mode == PPUMode::HBlank;
@@ -294,7 +297,7 @@ void PPU::updateSTATInterruptLine(){
 }
 
 void PPU::renderScanline(){
-    if(!lcdEnabled() || ly >= screenHeight) return;
+    if(!lcdEnabled() || ly.value() >= screenHeight) return;
 
     std::array<uint8_t, screenWidth> backgroundColors{};
     renderBackgroundAndWindow(backgroundColors);
@@ -302,7 +305,7 @@ void PPU::renderScanline(){
 }
 
 void PPU::renderBackgroundAndWindow(std::array<uint8_t, screenWidth>& backgroundColors){
-    const std::size_t lineOffset = static_cast<std::size_t>(ly) * screenWidth;
+    const std::size_t lineOffset = static_cast<std::size_t>(ly.value()) * screenWidth;
 
     if(!backgroundWindowEnabled()){
         for(std::size_t x = 0; x < screenWidth; ++x){
@@ -325,10 +328,10 @@ void PPU::renderBackgroundAndWindow(std::array<uint8_t, screenWidth>& background
                                           static_cast<uint8_t>(bgY % 8), unsignedTileData());
 
         backgroundColors[x] = colorId;
-        frame[lineOffset + x] = paletteShade(bgp, colorId);
+        frame[lineOffset + x] = paletteShade(bgp.value(), colorId);
     }
 
-    if(!windowEnabled() || ly < wy) return;
+    if(!windowEnabled() || ly.value() < wy.value()) return;
 
     const int windowLeft = static_cast<int>(wx.value()) - 7;
     if(windowLeft >= static_cast<int>(screenWidth)) return;
@@ -347,7 +350,7 @@ void PPU::renderBackgroundAndWindow(std::array<uint8_t, screenWidth>& background
 
         const std::size_t x = static_cast<std::size_t>(screenX);
         backgroundColors[x] = colorId;
-        frame[lineOffset + x] = paletteShade(bgp, colorId);
+        frame[lineOffset + x] = paletteShade(bgp.value(), colorId);
     }
 }
 
@@ -381,7 +384,7 @@ void PPU::renderSprites(const std::array<uint8_t, screenWidth>& backgroundColors
                   return left.index < right.index;
               });
 
-    const std::size_t lineOffset = static_cast<std::size_t>(ly) * screenWidth;
+    const std::size_t lineOffset = static_cast<std::size_t>(ly.value()) * screenWidth;
 
     for(std::size_t sortedIndex = spriteTotal; sortedIndex > 0; --sortedIndex){
         const uint8_t spriteIndex = sprites[sortedIndex - 1].index;
@@ -397,7 +400,7 @@ void PPU::renderSprites(const std::array<uint8_t, screenWidth>& backgroundColors
         const bool flipY = (attributes & 0x40) != 0;
         const bool behindBackground = (attributes & 0x80) != 0;
 
-        int spriteY = static_cast<int>(ly) - top;
+        int spriteY = static_cast<int>(ly.value()) - top;
         if(flipY) spriteY = spriteHeight - 1 - spriteY;
 
         if(spriteHeight == 16){

@@ -3,6 +3,8 @@
 
 #include <cstdint>
 #include "register.h"
+#include <array>
+#include <cstddef>
 
 enum class PPUMode : uint8_t{
     HBlank        = 0,
@@ -72,17 +74,17 @@ private:
     std::array<uint8_t, oamSize> oam{};
     FrameBuffer frame{};
 
-    Register lcdc = 0;
-    Register scy = 0;
-    Register scx = 0;
-    Register ly = 0;
-    Register lyc = 0;
-    Register dma = 0;
-    Register bgp = 0;
-    Register obp0 = 0;
-    Register obp1 = 0;
-    Register wy = 0;
-    Register wx = 0;
+    Register lcdc;
+    Register scy;
+    Register scx;
+    Register ly;
+    Register lyc;
+    Register dma;
+    Register bgp;
+    Register obp0;
+    Register obp1;
+    Register wy;
+    Register wx;
 
     uint8_t statInterruptEnable = 0;
 
