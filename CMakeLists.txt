@@ -13,11 +13,13 @@ add_executable(emulator
     src/cpu.cpp
     src/files.cpp
     src/gameboy.cpp
+    src/input.cpp
     src/main.cpp
     src/mmu.cpp
     src/opcodeLink.cpp
     src/opcodeLinkCB.cpp
     src/opcodes.cpp
+    src/ppu.cpp
     src/register.cpp
 )
 

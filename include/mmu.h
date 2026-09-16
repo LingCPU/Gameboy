@@ -8,6 +8,7 @@
 #include "interrupt.h"
 #include "clock.h"
 #include "input.h"
+#include "ppu.h"
 
 class MMU{
 public: 
@@ -31,6 +32,7 @@ private:
     Cartridge& cartridge;
     Clock clock;
     Input input;
+    PPU ppu;
 
     uint8_t readIO(uint16_t loc) const;
     void writeIO(uint16_t loc, uint8_t byte);
