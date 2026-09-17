@@ -5,14 +5,18 @@ Gameboy::Gameboy(Cartridge inCartridge)
 : cartridge(std::move(inCartridge)), 
   mmu(cartridge), 
   cpu(mmu){
-    
 }
 
-void Gameboy::run(){
-    while(true){
-        const uint8_t cycles = cpu.tick();
-        mmu.tick(cycles);
+void Gameboy::run(const ShouldCloseCallback& shouldClose, const FrameCallback& drawFrame){
+    while(!shouldClose()){
+        tick();
+        if(consumeFrameReady()) drawFrame(frameBuffer());
     }
+}
+
+void Gameboy::tick(){
+    const uint8_t cycles = cpu.tick();
+    mmu.tick(cycles);
 }
 
 void Gameboy::buttonPressed(Button button){
