@@ -39,9 +39,11 @@ class Cartridge{
 public:
     Cartridge(const std::string& filename);
     Cartridge(std::vector<uint8_t> romData);
+    ~Cartridge();
 
     uint8_t read(const Address address) const;
     void write(Address address, uint8_t value);
+    void save() const;
 
     // Header info from Cartridge
     std::string gameTitle() const;
@@ -52,16 +54,26 @@ public:
     std::size_t romSizeBytes() const;
     std::size_t ramSizeBytes() const;
 
+    bool hasBattery() const;
+    std::string saveFilename() const;
+
     const std::vector<uint8_t>& ramData() const;
 
 private:
     void initialize(std::vector<uint8_t> romData);
+    void loadPersistentData();
 
     std::shared_ptr<MemoryBankController> controller;
+    
     std::string titleText;
+    std::string romFilename;
+
     CartridgeType cartridgeType = CartridgeType::ROMOnly;
+
     uint8_t cartridgeTypeCode = 0;
     uint8_t headerROMSizeCode = 0;
     uint8_t headerRAMSizeCode = 0;
     std::size_t loadedROMSize = 0;
+
+    bool batteryBacked = false;
 };

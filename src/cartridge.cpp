@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <utility>
+#include <exception>
 
 namespace{
     constexpr std::size_t romBankSize = 0x4000;
@@ -63,6 +64,24 @@ public:
 
     const std::vector<uint8_t>& ramData() const{
         return ram;
+    }
+
+    void loadRAMData(const std::vector<uint8_t>& data){
+        if(data.size() != ram.size()){
+            throw std::runtime_error(
+                "Save RAM size mismatch: read " + std::to_string(data.size())
+                + " bytes, expected " + std::to_string(ram.size())
+            );
+        }
+        ram = data;
+    }
+
+    virtual std::vector<uint8_t> rtcData() const{
+        return {};
+    }
+
+    virtual void loadRTCData(const std::vector<uint8_t>& data){
+        if(!data.empty()) throw std::runtime_error("RTC data supplied to a cartridge without an RTC");
     }
 
 protected:
@@ -270,6 +289,76 @@ namespace{
                 else if(selection >= 0x08 && selection <= 0x0C && hasTimer) writeRTC(selection, value); 
             }
         }
+        
+        std::vector<uint8_t> rtcData() const override{
+            if(!hasTimer) return {};
+
+            syncRTC();
+
+            std::vector<uint8_t> data;
+            data.reserve(19);
+            data.push_back('G');
+            data.push_back('B');
+            data.push_back('R');
+            data.push_back('T');
+            data.push_back(1); // format version
+            data.push_back(rtc.seconds);
+            data.push_back(rtc.minutes);
+            data.push_back(rtc.hours);
+            data.push_back(static_cast<uint8_t>(rtc.days & 0xFF));
+            data.push_back(static_cast<uint8_t>((rtc.days >> 8) & 0x01));
+            data.push_back(static_cast<uint8_t>((rtc.halt ? 0x01 : 0x00) | (rtc.carry ? 0x02 : 0x00)));
+
+            const auto now = std::chrono::system_clock::now();
+            const auto unixSeconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+            const uint64_t timestamp = static_cast<uint64_t>(unixSeconds);
+            for(unsigned shift = 0; shift < 64; shift += 8){
+                data.push_back(static_cast<uint8_t>((timestamp >> shift) & 0xFF));
+            }
+
+            return data;
+        }
+
+        void loadRTCData(const std::vector<uint8_t>& data) override{
+            if(!hasTimer){
+                MemoryBankController::loadRTCData(data);
+                return;
+            }
+
+            constexpr std::size_t rtcSaveSize = 19;
+            if(data.size() != rtcSaveSize){
+                throw std::runtime_error(
+                    "RTC save size mismatch: read " + std::to_string(data.size())
+                    + " bytes, expected " + std::to_string(rtcSaveSize)
+                );
+            }
+
+            if(data[0] != 'G' || data[1] != 'B' || data[2] != 'R' || data[3] != 'T' || data[4] != 1){
+                throw std::runtime_error("Invalid or unsupported RTC save file");
+            }
+
+            rtc.seconds = static_cast<uint8_t>(data[5] % 60);
+            rtc.minutes = static_cast<uint8_t>(data[6] % 60);
+            rtc.hours = static_cast<uint8_t>(data[7] % 24);
+            rtc.days = static_cast<uint16_t>(data[8] | ((data[9] & 0x01) << 8));
+            rtc.halt = (data[10] & 0x01) != 0;
+            rtc.carry = (data[10] & 0x02) != 0;
+            rtcLatched = false;
+
+            uint64_t savedTimestamp = 0;
+            for(unsigned byte = 0; byte < 8; ++byte){
+                savedTimestamp |= static_cast<uint64_t>(data[11 + byte]) << (byte * 8);
+            }
+
+            lastRTCUpdate = std::chrono::steady_clock::now();
+
+            if(!rtc.halt){
+                const auto now = std::chrono::system_clock::now();
+                const auto unixSeconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+                const uint64_t currentTimestamp = unixSeconds > 0 ? static_cast<uint64_t>(unixSeconds) : 0;
+                if(currentTimestamp > savedTimestamp) addSeconds(currentTimestamp - savedTimestamp);
+            }
+        }
 
     private:
         struct RTC{
@@ -437,41 +526,34 @@ namespace{
         CartridgeType type;
         bool hasTimer = false;
         bool hasRumble = false;
+        bool hasBattery = false;
     };
 
     CartridgeDescription describeCartridge(uint8_t typeCode){
         switch(typeCode){
             case 0x00:
-            case 0x08:
-            case 0x09:
-                return {CartridgeType::ROMOnly};
+            case 0x08: return {CartridgeType::ROMOnly};
+            case 0x09: return {CartridgeType::ROMOnly, false, false, true};
 
             case 0x01:
-            case 0x02:
-            case 0x03:
-                return {CartridgeType::MBC1};
+            case 0x02: return {CartridgeType::MBC1};
+            case 0x03: return {CartridgeType::MBC1, false, false, true};
 
-            case 0x05:
-            case 0x06:
-                return {CartridgeType::MBC2};
+            case 0x05: return {CartridgeType::MBC2};
+            case 0x06: return {CartridgeType::MBC2, false, false, true};
 
-            case 0x0F:
-                return {CartridgeType::MBC3, true, false};
-            case 0x10:
-                return {CartridgeType::MBC3, true, false};
+            case 0x0F: return {CartridgeType::MBC3, true, false, true};
+            case 0x10: return {CartridgeType::MBC3, true, false, true};
             case 0x11:
-            case 0x12:
-            case 0x13:
-                return {CartridgeType::MBC3, false, false};
+            case 0x12: return {CartridgeType::MBC3, false, false};
+            case 0x13: return {CartridgeType::MBC3, false, false, true};
 
             case 0x19:
-            case 0x1A:
-            case 0x1B:
-                return {CartridgeType::MBC5, false, false};
+            case 0x1A: return {CartridgeType::MBC5, false, false};
+            case 0x1B: return {CartridgeType::MBC5, false, false, true};
             case 0x1C:
-            case 0x1D:
-            case 0x1E:
-                return {CartridgeType::MBC5, false, true};
+            case 0x1D: return {CartridgeType::MBC5, false, true};
+            case 0x1E: return {CartridgeType::MBC5, false, true, true};
 
             default:
                 throw std::runtime_error("Unsupported cartridge type code: " + std::to_string(typeCode));
@@ -489,11 +571,23 @@ namespace{
 }
 
 Cartridge::Cartridge(const std::string& filename){
+    romFilename = filename;
     initialize(convertROMBytes(readBytes(filename)));
+    loadPersistentData();
 }
 
 Cartridge::Cartridge(std::vector<uint8_t> romData){
     initialize(std::move(romData));
+}
+
+Cartridge::~Cartridge(){
+    if(!batteryBacked || romFilename.empty()) return;
+
+    try{
+        save();
+    } catch(const std::exception&){
+        // Destructors must not throw. Explicit calls to save() still report I/O errors.
+    }
 }
 
 void Cartridge::initialize(std::vector<uint8_t> romData){
@@ -507,6 +601,7 @@ void Cartridge::initialize(std::vector<uint8_t> romData){
 
     const CartridgeDescription description = describeCartridge(cartridgeTypeCode);
     cartridgeType = description.type;
+    batteryBacked = description.hasBattery;
 
     std::size_t ramSize = ramSizeFromCode(headerRAMSizeCode);
 
@@ -535,6 +630,36 @@ uint8_t Cartridge::read(Address address) const{
 
 void Cartridge::write(Address address, uint8_t value){
     controller->write(address, value);
+
+    if(batteryBacked && !romFilename.empty()
+        && address.value() <= 0x1FFF
+        && (value & 0x0F) != 0x0A){
+        save();
+    }
+}
+
+void Cartridge::loadPersistentData(){
+    if(!batteryBacked || romFilename.empty()) return;
+
+    const std::string ramFilename = saveFilename();
+    if(fileExists(ramFilename)){
+        controller->loadRAMData(convertROMBytes(readBytes(ramFilename)));
+    }
+
+    const std::string rtcFilename = romFilename + ".rtc";
+    if(fileExists(rtcFilename)){
+        controller->loadRTCData(convertROMBytes(readBytes(rtcFilename)));
+    }
+}
+
+void Cartridge::save() const{
+    if(!batteryBacked || romFilename.empty()) return;
+
+    const std::vector<uint8_t>& ram = controller->ramData();
+    if(!ram.empty()) writeBytes(saveFilename(), ram);
+
+    const std::vector<uint8_t> rtc = controller->rtcData();
+    if(!rtc.empty()) writeBytes(romFilename + ".rtc", rtc);
 }
 
 std::string Cartridge::gameTitle() const{
@@ -563,6 +688,14 @@ std::size_t Cartridge::romSizeBytes() const{
 
 std::size_t Cartridge::ramSizeBytes() const{
     return controller->ramData().size();
+}
+
+bool Cartridge::hasBattery() const{
+    return batteryBacked;
+}
+
+std::string Cartridge::saveFilename() const{
+    return romFilename.empty() ? std::string{} : romFilename + ".sav";
 }
 
 const std::vector<uint8_t>& Cartridge::ramData() const{
