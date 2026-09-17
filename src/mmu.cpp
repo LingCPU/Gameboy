@@ -34,7 +34,7 @@ uint8_t MMU::readByte(const Address addr) const{
     if(bootROMLoaded && location <= 0x00FF) return bootDMG[location];
     if(location <= 0x7FFF) return cartridge.read(addr);
     if(location <= 0x9FFF) return ppu.readVRAM(location - 0x8000);
-    if(location <= 0xBFFF) return 0xFF; 
+    if(location <= 0xBFFF) return cartridge.read(addr);
     if(location <= 0xDFFF) return wram[location - 0xC000];
     if(location <= 0xFDFF) return wram[location - 0xE000];
     if(location <= 0xFE9F) return ppu.readOAM(location - 0xFE00);
