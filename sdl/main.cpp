@@ -176,7 +176,7 @@ int main(int argc, char* argv[]){
     }
 
     try{
-        Cartridge cartridge(std::string(argv[1]));
+        Cartridge cartridge{std::string{argv[1]}};
         Gameboy emulator(std::move(cartridge));
         gameboy = &emulator;
         emulator.run(isClosed, drawFrame);
