@@ -12,7 +12,7 @@
 #include "ppu.h"
 
 namespace{
-    constexpr int pixelScale = 2;
+    constexpr int pixelScale = 5;
     constexpr int windowWidth = static_cast<int>(PPU::screenWidth) * pixelScale;
     constexpr int windowHeight = static_cast<int>(PPU::screenHeight) * pixelScale;
 
